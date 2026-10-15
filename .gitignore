@@ -5,5 +5,6 @@ pi-portable-data/
 .env
 .env.*
 **/auth.json
+**/ollama-cloud.key*
 *.pfx
 *.p12

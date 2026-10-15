@@ -61,10 +61,11 @@ try {
   const preset = JSON.parse(await readFile(join(root, 'config/models.json'), 'utf8'));
   preset.providers['ollama-cloud'].baseUrl = `http://127.0.0.1:${server.address().port}/v1`;
   await writeFile(join(home, 'agent/models.json'), JSON.stringify(preset));
+  await writeFile(join(home, 'agent/ollama-cloud.key'), 'local-test');
   const windows = process.env.SystemRoot ?? 'C:\\Windows';
   const child = spawn(join(root, 'dist/pi-portable.exe'), ['--print', 'Run the tool smoke test.'], {
     cwd: scratch,
-    env: { ...process.env, OLLAMA_API_KEY: 'local-test', PI_PORTABLE_HOME: home, PATH: [join(windows, 'System32'), windows, join(windows, 'System32/WindowsPowerShell/v1.0')].join(';') },
+    env: { ...process.env, OLLAMA_API_KEY: '', PI_PORTABLE_HOME: home, PATH: [join(windows, 'System32'), windows, join(windows, 'System32/WindowsPowerShell/v1.0')].join(';') },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let stdout = '', stderr = '';

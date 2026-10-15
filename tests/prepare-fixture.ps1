@@ -4,6 +4,8 @@ $dir = Join-Path $root '.build/fixture'
 New-Item -ItemType Directory -Force $dir | Out-Null
 & "$env:WINDIR/Microsoft.NET/Framework64/v4.0.30319/csc.exe" /nologo /target:exe /platform:x64 "/out:$dir\pi.exe" (Join-Path $PSScriptRoot 'Fixture.cs')
 if ($LASTEXITCODE -ne 0) { throw 'Fixture compilation failed' }
+& "$env:WINDIR/Microsoft.NET/Framework64/v4.0.30319/csc.exe" /nologo /target:exe /platform:x64 "/out:$root\.build\secret-input-test.exe" (Join-Path $PSScriptRoot 'SecretInput.cs')
+if ($LASTEXITCODE -ne 0) { throw 'Secret input test compilation failed' }
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 # A unique archive avoids deleting previous test artifacts.
 $zipPath = Join-Path $root ('.build/fixture-' + [Guid]::NewGuid().ToString('N') + '.zip')

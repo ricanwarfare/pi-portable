@@ -66,7 +66,7 @@ $metadata = @(
     ('internal static class BuildInfo { internal const string Version = "' + $version + '"; internal const string PayloadHash = "' + $ExpectedSha256.ToLowerInvariant() + '"; }')
 )
 [IO.File]::WriteAllLines($buildInfo, $metadata)
-& $compiler /nologo /optimize+ /target:exe /platform:x64 "/out:$OutputPath" /reference:System.IO.Compression.dll /reference:System.IO.Compression.FileSystem.dll "/resource:$PayloadZip,payload.zip" "/resource:$root/NOTICE.txt,NOTICE.txt" "/resource:$root/config/models.json,defaults.models.json" "/resource:$root/config/settings.json,defaults.settings.json" (Join-Path $root 'src/Program.cs') $buildInfo
+& $compiler /nologo /optimize+ /target:exe /platform:x64 "/out:$OutputPath" /reference:System.IO.Compression.dll /reference:System.IO.Compression.FileSystem.dll /reference:System.Web.Extensions.dll "/resource:$PayloadZip,payload.zip" "/resource:$root/NOTICE.txt,NOTICE.txt" "/resource:$root/config/models.json,defaults.models.json" "/resource:$root/config/settings.json,defaults.settings.json" (Join-Path $root 'src/Program.cs') $buildInfo
 if ($LASTEXITCODE -ne 0) { throw 'C# compilation failed.' }
 $hash = (Get-FileHash -LiteralPath $OutputPath -Algorithm SHA256).Hash.ToLowerInvariant()
 [IO.File]::WriteAllText("$OutputPath.sha256", "$hash  $([IO.Path]::GetFileName($OutputPath))`n")

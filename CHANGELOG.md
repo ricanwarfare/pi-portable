@@ -2,6 +2,16 @@
 
 Wrapper versions are independent of upstream Pi versions.
 
+## 0.2.0 — 2026-10-15
+
+- First interactive Ollama launch prompts for a hidden API key, saves it on the portable drive, and starts Pi.
+- Later launches reuse `agent/ollama-cloud.key`; `OLLAMA_API_KEY` can override it without changing the file.
+- Added `--portable-setup` to replace the saved key, with Escape/Ctrl+C cancellation and empty-input handling.
+- Automation, redirected input/output, RPC, utilities, other providers, existing Pi auth, and resumed sessions avoid automatic setup.
+- Added hidden-input tests and saved-key authentication coverage in the real-tool smoke test.
+
+Saved keys are plaintext for cross-system portability. Upstream Pi and bundled tool versions are unchanged.
+
 ## 0.1.0 — 2026-10-15
 
 Initial public release of Pi Portable, an Incident Response distribution fork of the Pi coding agent.

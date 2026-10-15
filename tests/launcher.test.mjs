@@ -13,7 +13,7 @@ const decode = (s) => Buffer.from(s, 'base64').toString('utf8');
 function run(args = [], options = {}) {
   const home = options.home ?? join(scratch, 'portable home');
   const child = spawnSync(options.launcher ?? launcher, args, {
-    cwd: scratch, env: { ...process.env, PI_PORTABLE_HOME: home, PI_CODING_AGENT_DIR: 'ignored-host-config' },
+    cwd: scratch, env: { ...process.env, OLLAMA_API_KEY: '', ...options.env, PI_PORTABLE_HOME: home, PI_CODING_AGENT_DIR: 'ignored-host-config' },
     encoding: 'utf8', input: options.input, timeout: 30000,
   });
   const lines = (child.stdout ?? '').trim().split(/\r?\n/);
@@ -38,6 +38,34 @@ test('forwards Windows arguments, current directory, stdin and exit code', () =>
   assert.equal(result.env.PI_TELEMETRY, '0');
   assert.ok(result.actualArgs.includes('--no-context-files'));
   assert.ok(result.actualArgs.includes('read,powershell,grep,find,ls'));
+});
+
+test('saved Ollama key is reused without prompting and environment can override it', () => {
+  const home = join(scratch, 'saved key');
+  const agent = join(home, 'agent'); mkdirSync(agent, { recursive: true });
+  const keyPath = join(agent, 'ollama-cloud.key'); writeFileSync(keyPath, 'synthetic-saved-key');
+  const saved = run([], { home });
+  assert.equal(saved.status, 0, saved.stderr);
+  assert.equal(saved.env.OLLAMA_API_KEY, 'synthetic-saved-key');
+  assert.ok(!saved.stderr.includes('synthetic-saved-key'));
+  const override = run([], { home, env: { OLLAMA_API_KEY: 'synthetic-override' } });
+  assert.equal(override.env.OLLAMA_API_KEY, 'synthetic-override');
+  assert.equal(readFileSync(keyPath, 'utf8'), 'synthetic-saved-key');
+});
+
+test('explicit setup refuses redirected input without consuming a prompt or saving a key', () => {
+  const home = join(scratch, 'noninteractive setup');
+  const result = run(['--portable-setup'], { home, input: 'do-not-save-piped-input' });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /requires an interactive console/);
+  assert.ok(!existsSync(join(home, 'agent/ollama-cloud.key')));
+  assert.ok(!result.stderr.includes('do-not-save-piped-input'));
+});
+
+test('hidden secret input supports editing and cancellation without echoing characters', () => {
+  const result = spawnSync(join(root, '.build/secret-input-test.exe'), [launcher], { encoding: 'utf8', timeout: 30000 });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /no echo passed/);
 });
 
 test('explicit tools replace defaults, and subcommands keep first position', () => {
@@ -79,7 +107,7 @@ test('archive traversal is rejected without writing outside runtime', () => {
 test('copying only the EXE creates state beside its new location', () => {
   const folder = join(scratch, 'USB drive'); mkdirSync(folder);
   const copied = join(folder, 'pi-portable.exe'); copyFileSync(launcher, copied);
-  const env = { ...process.env }; delete env.PI_PORTABLE_HOME;
+  const env = { ...process.env, OLLAMA_API_KEY: '' }; delete env.PI_PORTABLE_HOME;
   const child = spawnSync(copied, [], { cwd: scratch, env, encoding: 'utf8', timeout: 30000 });
   assert.equal(child.status, 0, child.stderr);
   assert.ok(existsSync(join(folder, 'pi-portable-data/agent')));
@@ -88,7 +116,7 @@ test('copying only the EXE creates state beside its new location', () => {
 test('concurrent first launches share a complete runtime', async () => {
   const home = join(scratch, 'concurrent');
   const start = () => new Promise((resolveExit, reject) => {
-    const child = spawn(launcher, [], { env: { ...process.env, PI_PORTABLE_HOME: home }, stdio: 'ignore' });
+    const child = spawn(launcher, [], { env: { ...process.env, OLLAMA_API_KEY: '', PI_PORTABLE_HOME: home }, stdio: 'ignore' });
     child.once('error', reject); child.once('exit', resolveExit);
   });
   assert.deepEqual(await Promise.all([start(), start()]), [0, 0]);

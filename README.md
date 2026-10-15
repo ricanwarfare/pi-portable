@@ -38,17 +38,21 @@ if ($actual -ne $expected) { throw 'Checksum mismatch' }
 
 The EXE is currently **unsigned**. A matching SHA256 confirms the file matches the published checksum; it is not a code signature.
 
-### 2. Supply your Ollama Cloud key
+### 2. Enter your Ollama Cloud key once
 
-Create a key in [Ollama API key settings](https://ollama.com/settings/keys), then set it in the terminal that will start Pi:
+Create a key in [Ollama API key settings](https://ollama.com/settings/keys), then launch the EXE:
 
 ```powershell
-$env:OLLAMA_API_KEY = '<your-api-key>'
+.\pi-portable.exe
 ```
 
 The preset connects directly to `https://ollama.com/v1` using model ID `deepseek-v4.1-flash`. No model download or local Ollama service is needed. Internet access and model access on your account are required. See [Ollama's model page](https://ollama.com/library/deepseek-v4.1-flash) and [API documentation](https://docs.ollama.com/api/openai-compatibility).
 
-The key is read from the environment; it is not embedded in the release or copied into the preset. Avoid placing real keys in scripts or command history you intend to share.
+On the first interactive launch, paste your API key into the hidden-input prompt and press Enter. Pi starts immediately afterward. Future launches reuse the key saved at `pi-portable-data/agent/ollama-cloud.key`. Escape or Ctrl+C cancels without saving.
+
+**The saved key is plaintext so the USB works across systems.** Protect the drive and do not share its data folder. The key is never embedded in the public EXE, echoed by the prompt, or placed in Pi's command-line arguments. Pi's own stored credentials, if configured through `/login`, take precedence.
+
+To replace the launcher-saved key, run `.\pi-portable.exe --portable-setup`. To avoid saving a key or to override the saved value for one process, set `$env:OLLAMA_API_KEY = '<your-key>'` before launch. Redirected input/output and RPC do not trigger automatic setup or consume piped prompts; use a saved key or the environment for automation. Resumed sessions defer authentication to Pi.
 
 ### 3. Start an investigation
 
@@ -120,7 +124,7 @@ Arguments, piped input, working directory, and Pi's exit code are preserved. Int
 pi-portable.exe
 pi-portable-data/
 ├── runtime/<payload-sha256>/  Extracted distribution, search tools, licenses
-├── agent/                    settings.json, models.json, auth.json, Pi state
+├── agent/                    settings.json, models.json, ollama-cloud.key, Pi auth/state
 ├── sessions/                 Conversations grouped by working directory
 ├── tmp/                      Child-process temporary files
 └── runtime.lock              Extraction/configuration lock
@@ -163,7 +167,7 @@ For a local/private endpoint, follow [Pi's compatible-endpoint configuration](ht
 | Upstream Pi | 1.3.0 |
 | Search tools | ripgrep 15.2.0, fd 10.5.0 |
 | Default connection | Ollama Cloud / DeepSeek 4.1 Flash |
-| Wrapper | 0.1.0 — initial public release |
+| Wrapper | 0.2.0 — first-run API-key setup |
 
 Automated tests cover the launcher and actual tools using a local fake model, including default model selection and Bearer authentication. No real provider account is used. Clean-VM compatibility, live Ollama account access, and interactive console behavior still need broader validation. ARM64, Linux, macOS, and older Windows versions are not validated targets.
 
