@@ -2,6 +2,14 @@
 
 Wrapper versions are independent of upstream Pi versions.
 
+## 0.2.1 — 2026-10-15
+
+- Embedded an original Pi shield icon in the Windows executable, with seven sizes from 16 to 256 pixels.
+- Added editable SVG artwork and a PowerShell icon-generation script.
+- Documented double-click launch and choosing an investigation working directory.
+
+No changes to authentication, runtime, or default tools.
+
 ## 0.2.0 — 2026-10-15
 
 - First interactive Ollama launch prompts for a hidden API key, saves it on the portable drive, and starts Pi.

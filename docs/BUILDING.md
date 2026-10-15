@@ -21,6 +21,8 @@ Output is `dist/pi-portable.exe`, `dist/pi-portable.exe.sha256`, and `dist/pi-po
 
 The build validates archives against [upstream-release.json](../upstream-release.json), retains search-tool licenses, and embeds the distribution and configuration templates. Downloads are cached in `.build/` for subsequent offline builds. Use `-OutputPath` to choose another output. `-PayloadZip` and `-ExpectedSha256` are intended for test fixtures or deliberately supplied distributions; the archive must contain `pi.exe` at its root.
 
+The executable icon is embedded from `assets/pi-portable.ico`; no separate icon is needed on a response drive. Its original vector artwork is in `assets/pi-portable.svg`. To regenerate the seven-size ICO using Windows System.Drawing, run `pwsh -NoProfile -File scripts/generate-icon.ps1`. If changing the design, update both the SVG and the drawing paths in that script. A preview PNG is written under `.build/`.
+
 Launcher tests cover quoting, stdin, exit codes, state paths, copied-EXE behavior, concurrent extraction, archive traversal, junctions, tamper detection, and configuration preservation. The runtime test redirects the Ollama preset to a localhost fake model and exercises real PowerShell/read/grep/find/ls with a system-only PATH. It checks model selection, Bearer authentication, sessions, and disabled workspace discovery.
 
 No provider keys are needed. Tests require permission to listen on localhost and create a temporary directory junction. Artifacts remain in `.build/` for inspection. Interactive behavior, a clean Windows VM, and live Ollama access are separate manual checks.

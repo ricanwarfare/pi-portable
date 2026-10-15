@@ -1,5 +1,7 @@
 # Pi Portable
 
+<img src="assets/pi-portable.svg" width="88" height="88" alt="Pi Portable shield icon">
+
 **The Pi coding agent, packaged as a portable asset for Incident Response.**
 
 [![Windows build](https://github.com/ricanwarfare/pi-portable/actions/workflows/windows.yml/badge.svg)](https://github.com/ricanwarfare/pi-portable/actions/workflows/windows.yml)
@@ -41,6 +43,8 @@ The EXE is currently **unsigned**. A matching SHA256 confirms the file matches t
 ### 2. Enter your Ollama Cloud key once
 
 Create a key in [Ollama API key settings](https://ollama.com/settings/keys), then launch the EXE:
+
+You can **double-click `pi-portable.exe` in File Explorer**. It opens a console, asks for your key if needed, and starts Pi. This remains a terminal application; its working directory will normally be the EXE's folder. To investigate a particular directory, launch it from PowerShell as shown below, or set a shortcut's **Start in** folder.
 
 ```powershell
 .\pi-portable.exe
@@ -167,7 +171,7 @@ For a local/private endpoint, follow [Pi's compatible-endpoint configuration](ht
 | Upstream Pi | 1.3.0 |
 | Search tools | ripgrep 15.2.0, fd 10.5.0 |
 | Default connection | Ollama Cloud / DeepSeek 4.1 Flash |
-| Wrapper | 0.2.0 — first-run API-key setup |
+| Wrapper | 0.2.1 — executable icon |
 
 Automated tests cover the launcher and actual tools using a local fake model, including default model selection and Bearer authentication. No real provider account is used. Clean-VM compatibility, live Ollama account access, and interactive console behavior still need broader validation. ARM64, Linux, macOS, and older Windows versions are not validated targets.
 
