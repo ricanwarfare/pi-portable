@@ -1,0 +1,27 @@
+{
+  "providers": {
+    "ollama-cloud": {
+      "name": "Ollama Cloud",
+      "baseUrl": "https://ollama.com/v1",
+      "api": "openai-completions",
+      "apiKey": "${OLLAMA_API_KEY}",
+      "authHeader": true,
+      "compat": {
+        "supportsStore": false,
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": true,
+        "maxTokensField": "max_tokens"
+      },
+      "models": [
+        {
+          "id": "deepseek-v4.1-flash",
+          "name": "DeepSeek 4.1 Flash (Ollama Cloud)",
+          "reasoning": true,
+          "input": ["text", "image"],
+          "contextWindow": 1000000,
+          "maxTokens": 8192
+        }
+      ]
+    }
+  }
+}

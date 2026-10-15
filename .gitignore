@@ -1,0 +1,9 @@
+.build/
+dist/
+upstream/
+pi-portable-data/
+.env
+.env.*
+**/auth.json
+*.pfx
+*.p12
