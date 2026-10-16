@@ -1,22 +1,24 @@
-# Pi Portable
+# Pi Response — AI-Assisted Incident Response & Cyber Triage
 
-<img src="assets/pi-portable.svg" width="88" height="88" alt="Pi Portable shield icon">
+<img src="assets/pi-response.svg" width="88" height="88" alt="Pi Response shield icon">
 
 **The Pi coding agent, packaged as a portable asset for Incident Response.**
 
-[![Windows and Linux builds](https://github.com/ricanwarfare/pi-portable/actions/workflows/windows.yml/badge.svg)](https://github.com/ricanwarfare/pi-portable/actions/workflows/windows.yml)
-[![Latest release](https://img.shields.io/github/v/release/ricanwarfare/pi-portable)](https://github.com/ricanwarfare/pi-portable/releases/latest)
+[![Windows and Linux builds](https://github.com/ricanwarfare/pi-response/actions/workflows/windows.yml/badge.svg)](https://github.com/ricanwarfare/pi-response/actions/workflows/windows.yml)
+[![Latest release](https://img.shields.io/github/v/release/ricanwarfare/pi-response)](https://github.com/ricanwarfare/pi-response/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Pi Portable is an **Incident Response distribution fork of the [Pi coding agent](https://github.com/earendil-works/pi)** by Mario Zechner and the Pi contributors. Carry one Windows or Linux executable onto a system, connect to your model provider, and use Pi to inspect processes, examine logs, and work through an investigation from the terminal.
+Pi Response is an **Incident Response distribution fork of the [Pi coding agent](https://github.com/earendil-works/pi)** by Mario Zechner and the Pi contributors. Carry one Windows or Linux executable onto a system, connect to your model provider, and use Pi to inspect processes, examine logs, and work through an investigation from the terminal.
 
 This repository maintains the portable launchers, provider presets, tests, and release tooling. It packages **unmodified official Pi binaries** rather than modifying Pi's agent source. It is an independent project, not an official Pi release.
 
-[**Download Windows / Linux x64**](https://github.com/ricanwarfare/pi-portable/releases/latest) · [Windows quick start](#windows-quick-start) · [Linux quick start](#linux-quick-start) · [Build from source](docs/BUILDING.md) · [Troubleshooting](docs/TROUBLESHOOTING.md)
+[**Download Windows / Linux x64**](https://github.com/ricanwarfare/pi-response/releases/latest) · [Windows quick start](#windows-quick-start) · [Linux quick start](#linux-quick-start) · [Build from source](docs/BUILDING.md) · [Troubleshooting](docs/TROUBLESHOOTING.md)
 
-## Why Pi Portable?
+Previously named **Pi Portable**. Version 0.6.0 starts fresh under `pi-response-data`; releases before v0.6.0 retain their original filenames.
 
-- **One file per platform.** Carry `pi-portable.exe` for Windows or `pi-portable-linux-x64` for Linux; each embeds its runtime and assets.
+## Why Pi Response?
+
+- **One file per platform.** Carry `pi-response.exe` for Windows or `pi-response-linux-x64` for Linux; each embeds its runtime and assets.
 - **No development tools on the target.** No Node.js, Bun, npm, Git Bash, or local Ollama installation required.
 - **PowerShell for Windows investigations.** Inspect the host using its native shell alongside Pi's file-reading and search tools.
 - **Bash on Linux.** A native Linux x64 launcher provides the same portable storage and Ollama setup, with Bash as the shell tool.
@@ -31,12 +33,12 @@ This repository maintains the portable launchers, provider presets, tests, and r
 
 ## Downloads
 
-Use the [latest GitHub Release](https://github.com/ricanwarfare/pi-portable/releases/latest) for ready-to-run binaries:
+Use the [latest GitHub Release](https://github.com/ricanwarfare/pi-response/releases/latest) for ready-to-run binaries:
 
 | Platform | Executable | Checksum |
 | --- | --- | --- |
-| Windows x64 | [pi-portable.exe](https://github.com/ricanwarfare/pi-portable/releases/latest/download/pi-portable.exe) | [SHA256](https://github.com/ricanwarfare/pi-portable/releases/latest/download/pi-portable.exe.sha256) |
-| Linux x64 | [pi-portable-linux-x64](https://github.com/ricanwarfare/pi-portable/releases/latest/download/pi-portable-linux-x64) | [SHA256](https://github.com/ricanwarfare/pi-portable/releases/latest/download/pi-portable-linux-x64.sha256) |
+| Windows x64 | [pi-response.exe](https://github.com/ricanwarfare/pi-response/releases/latest/download/pi-response.exe) | [SHA256](https://github.com/ricanwarfare/pi-response/releases/latest/download/pi-response.exe.sha256) |
+| Linux x64 | [pi-response-linux-x64](https://github.com/ricanwarfare/pi-response/releases/latest/download/pi-response-linux-x64) | [SHA256](https://github.com/ricanwarfare/pi-response/releases/latest/download/pi-response-linux-x64.sha256) |
 
 Copy **only the executable for your platform** to your USB drive or support host. You do not need the entire `dist` folder, a separate icon, or a source-code ZIP. Keep the checksum file to verify the transfer. The optional `.build.json` file records the source commit, dependency pins, and hashes; it is not needed to run Pi.
 
@@ -46,11 +48,11 @@ The repository contains source and build tools. Generated binaries are published
 
 ### 1. Download and verify
 
-Download `pi-portable.exe` and `pi-portable.exe.sha256` from the [latest release](https://github.com/ricanwarfare/pi-portable/releases/latest). Place them on a response drive or in a writable tools folder, then verify the executable:
+Download `pi-response.exe` and `pi-response.exe.sha256` from the [latest release](https://github.com/ricanwarfare/pi-response/releases/latest). Place them on a response drive or in a writable tools folder, then verify the executable:
 
 ```powershell
-$expected = (Get-Content .\pi-portable.exe.sha256 -Raw).Split(' ')[0].Trim()
-$actual = (Get-FileHash .\pi-portable.exe -Algorithm SHA256).Hash
+$expected = (Get-Content .\pi-response.exe.sha256 -Raw).Split(' ')[0].Trim()
+$actual = (Get-FileHash .\pi-response.exe -Algorithm SHA256).Hash
 if ($actual -ne $expected) { throw 'Checksum mismatch' }
 ```
 
@@ -58,21 +60,21 @@ The EXE is currently **unsigned**. A matching SHA256 confirms the file matches t
 
 ### 2. Enter your Ollama Cloud key once
 
-Create a key in [Ollama API key settings](https://ollama.com/settings/keys). **Double-click `pi-portable.exe` in File Explorer**, or launch it from PowerShell:
+Create a key in [Ollama API key settings](https://ollama.com/settings/keys). **Double-click `pi-response.exe` in File Explorer**, or launch it from PowerShell:
 
 ```powershell
-.\pi-portable.exe
+.\pi-response.exe
 ```
 
 It opens a console, asks for your key if needed, and starts Pi. This remains a terminal application. With double-click launch, the working directory will normally be the EXE's folder. To investigate another directory, use PowerShell as shown below or set a shortcut's **Start in** folder.
 
 The preset connects directly to `https://ollama.com/v1` using model ID `deepseek-v4.1-flash`. No model download or local Ollama service is needed. Internet access and model access on your account are required. See [Ollama's model page](https://ollama.com/library/deepseek-v4.1-flash) and [API documentation](https://docs.ollama.com/api/openai-compatibility).
 
-On the first interactive launch, paste your API key into the hidden-input prompt and press Enter. Pi starts immediately afterward. Future launches reuse the key saved at `pi-portable-data/agent/ollama-cloud.key`. Escape or Ctrl+C cancels without saving.
+On the first interactive launch, paste your API key into the hidden-input prompt and press Enter. Pi starts immediately afterward. Future launches reuse the key saved at `pi-response-data/agent/ollama-cloud.key`. Escape or Ctrl+C cancels without saving.
 
 **The saved key is plaintext so the USB works across systems.** Protect the drive and do not share its data folder. The key is never embedded in the public EXE, echoed by the prompt, or placed in Pi's command-line arguments. Pi's own stored credentials, if configured through `/login`, take precedence.
 
-To replace the launcher-saved key, run `.\pi-portable.exe --portable-setup`. To avoid saving a key or to override the saved value for one process, set `$env:OLLAMA_API_KEY = '<your-key>'` before launch. Redirected input/output and RPC do not trigger automatic setup or consume piped prompts; use a saved key or the environment for automation. Resumed sessions defer authentication to Pi.
+To replace the launcher-saved key, run `.\pi-response.exe --response-setup`. To avoid saving a key or to override the saved value for one process, set `$env:OLLAMA_API_KEY = '<your-key>'` before launch. Redirected input/output and RPC do not trigger automatic setup or consume piped prompts; use a saved key or the environment for automation. Resumed sessions defer authentication to Pi.
 
 ### 3. Start an investigation
 
@@ -80,58 +82,58 @@ Launch from the directory you want to work in:
 
 ```powershell
 Set-Location 'C:\CollectedEvidence'
-E:\Tools\pi-portable.exe
+E:\Tools\pi-response.exe
 ```
 
 Or process a single prompt and exit:
 
 ```powershell
-E:\Tools\pi-portable.exe -p 'Use PowerShell to list running processes, their paths, and parent process IDs. Summarize entries that warrant investigation.'
+E:\Tools\pi-response.exe -p 'Use PowerShell to list running processes, their paths, and parent process IDs. Summarize entries that warrant investigation.'
 ```
 
 Validate findings against the original evidence. Model conclusions are not a substitute for evidence preservation or analyst judgment.
 
 ## Linux quick start
 
-Download `pi-portable-linux-x64` and its `.sha256` file from the [latest release](https://github.com/ricanwarfare/pi-portable/releases/latest). Put the executable on your response drive or transfer it to a support host:
+Download `pi-response-linux-x64` and its `.sha256` file from the [latest release](https://github.com/ricanwarfare/pi-response/releases/latest). Put the executable on your response drive or transfer it to a support host:
 
 ```bash
-sha256sum -c pi-portable-linux-x64.sha256
-chmod +x pi-portable-linux-x64
-./pi-portable-linux-x64
+sha256sum -c pi-response-linux-x64.sha256
+chmod +x pi-response-linux-x64
+./pi-response-linux-x64
 ```
 
-On the first interactive run, enter your Ollama Cloud API key at the hidden prompt. It is saved in plaintext at `pi-portable-data/agent/ollama-cloud.key`, beside the executable's location, and reused later. Use `--portable-setup` to replace it. An existing `OLLAMA_API_KEY` environment variable overrides the launcher-saved key.
+On the first interactive run, enter your Ollama Cloud API key at the hidden prompt. It is saved in plaintext at `pi-response-data/agent/ollama-cloud.key`, beside the executable's location, and reused later. Use `--response-setup` to replace it. An existing `OLLAMA_API_KEY` environment variable overrides the launcher-saved key.
 
 The Linux build uses `read,bash,grep,find,ls` by default. It includes Pi, ripgrep, and fd; **no Go, Node.js, Bun, Python, or local Ollama installation is required on the target**. Bash and a compatible glibc-based Linux system are required. CI validates Ubuntu 22.04 and 24.04 x64. Alpine/musl, ARM64, older distributions, and GUI double-click launch are not validated targets.
 
 ```bash
 # Keep the executable and case data on an executable, writable filesystem.
-export PI_PORTABLE_HOME='/home/analyst/ir/case-042/pi-data'
-/media/usb/pi-portable-linux-x64
+export PI_RESPONSE_HOME='/home/analyst/ir/case-042/pi-data'
+/media/usb/pi-response-linux-x64
 
 # One support task; shell commands can change the remote host.
-./pi-portable-linux-x64 -p 'Use Bash to list listening TCP ports and identify their processes.'
+./pi-response-linux-x64 -p 'Use Bash to list listening TCP ports and identify their processes.'
 ```
 
 Linux files must be launched from a terminal or SSH session. The executable and extracted runtime must be on filesystems that allow execution (`noexec` mounts block them). Newly created data directories request mode `0700`, and saved keys/configuration request `0600`; filesystem support and mount options determine enforcement. FAT/exFAT USB storage may not enforce owner-only permissions. Protect the drive.
 
-For interactive remote support, request a terminal with `ssh -t analyst@host './pi-portable-linux-x64'` after transferring the executable to that account's home directory. The saved key and sessions then live on the remote host, beside its executable, unless you choose another `PI_PORTABLE_HOME` there.
+For interactive remote support, request a terminal with `ssh -t analyst@host './pi-response-linux-x64'` after transferring the executable to that account's home directory. The saved key and sessions then live on the remote host, beside its executable, unless you choose another `PI_RESPONSE_HOME` there.
 
 Windows and Linux can share a portable data folder, including the saved key and model settings; each platform has its own extracted runtime hash. Use host-appropriate shell commands and review any custom settings carried between systems.
 
 ## Investigation examples
 
-Examples assume the executable is on your PATH. Otherwise use `.\pi-portable.exe` on Windows, `./pi-portable-linux-x64` on Linux, or the full path.
+Examples assume the executable is on your PATH. Otherwise use `.\pi-response.exe` on Windows, `./pi-response-linux-x64` on Linux, or the full path.
 
 | Task | Windows | Linux |
 | --- | --- | --- |
-| Review logs without a shell | `pi-portable.exe --tools read,grep,find,ls -p 'Review these logs for authentication anomalies. Cite source files and lines.'` | `pi-portable-linux-x64 --tools read,grep,find,ls -p 'Review these logs for authentication anomalies. Cite source files and lines.'` |
-| Name a case session | `pi-portable.exe --name 'Case-042 host-01'` | `pi-portable-linux-x64 --name 'Case-042 host-01'` |
-| Resume the previous session | `pi-portable.exe --continue` | `pi-portable-linux-x64 --continue` |
-| Inspect paths and wrapper version | `pi-portable.exe --portable-info` | `pi-portable-linux-x64 --portable-info` |
-| Show upstream Pi version | `pi-portable.exe --version` | `pi-portable-linux-x64 --version` |
-| Replace the saved Ollama key | `pi-portable.exe --portable-setup` | `pi-portable-linux-x64 --portable-setup` |
+| Review logs without a shell | `pi-response.exe --tools read,grep,find,ls -p 'Review these logs for authentication anomalies. Cite source files and lines.'` | `pi-response-linux-x64 --tools read,grep,find,ls -p 'Review these logs for authentication anomalies. Cite source files and lines.'` |
+| Name a case session | `pi-response.exe --name 'Case-042 host-01'` | `pi-response-linux-x64 --name 'Case-042 host-01'` |
+| Resume the previous session | `pi-response.exe --continue` | `pi-response-linux-x64 --continue` |
+| Inspect paths and wrapper version | `pi-response.exe --response-info` | `pi-response-linux-x64 --response-info` |
+| Show upstream Pi version | `pi-response.exe --version` | `pi-response-linux-x64 --version` |
+| Replace the saved Ollama key | `pi-response.exe --response-setup` | `pi-response-linux-x64 --response-setup` |
 
 Search respects ignore rules such as `.gitignore`; it is not exhaustive forensic enumeration.
 
@@ -145,13 +147,13 @@ Search respects ignore rules such as `.gitignore`; it is not exhaustive forensic
 PowerShell and Bash can modify the host. To work without a shell or dedicated editing tools, use `--tools read,grep,find,ls` with either executable. On Windows:
 
 ```powershell
-.\pi-portable.exe --tools read,grep,find,ls
+.\pi-response.exe --tools read,grep,find,ls
 ```
 
 To enable editing on Windows:
 
 ```powershell
-.\pi-portable.exe --tools read,powershell,edit,write,grep,find,ls
+.\pi-response.exe --tools read,powershell,edit,write,grep,find,ls
 ```
 
 An explicit `--tools` list replaces the portable default. Pi also accepts `--no-tools` and `--exclude-tools`. Tool selection is not an operating-system security boundary.
@@ -163,14 +165,14 @@ On Linux, use `--tools read,bash,edit,write,grep,find,ls` to enable the equivale
 Collect locally without an API key or model request:
 
 ```powershell
-.\pi-portable.exe --portable-triage
+.\pi-response.exe --response-triage
 ```
 
 ```bash
-./pi-portable-linux-x64 --portable-triage
+./pi-response-linux-x64 --response-triage
 ```
 
-The command prints a new case folder under `pi-portable-data/cases/`, with host/operator metadata, six groups of raw evidence, exact collector commands and UTC timestamps, a collection report, and SHA-256 manifests. Collectors have time/output limits and record permission failures and truncation.
+The command prints a new case folder under `pi-response-data/cases/`, with host/operator metadata, six groups of raw evidence, exact collector commands and UTC timestamps, a collection report, and SHA-256 manifests. Collectors have time/output limits and record permission failures and truncation.
 
 Copy the whole case folder to your workstation, start Pi in a fresh session, and use:
 
@@ -218,15 +220,15 @@ platform executable
 
 Each executable contains Pi's runtime, assets, native helpers, ripgrep, and fd. Later launches verify the cached runtime against the embedded archive. Concurrent launches serialize extraction; changed or incomplete expected runtime files cause startup to stop.
 
-Arguments, piped input, working directory, and Pi's exit code are preserved. Interactive, print, JSON, and RPC modes remain available. `--portable-notices` prints the embedded upstream license notice.
+Arguments, piped input, working directory, and Pi's exit code are preserved. Interactive, print, JSON, and RPC modes remain available. `--response-notices` prints the embedded upstream license notice.
 
 ### Where data lives
 
 ```text
 response-drive/
-├── pi-portable.exe           Windows executable (optional if using Linux only)
-├── pi-portable-linux-x64     Linux executable (optional if using Windows only)
-└── pi-portable-data/
+├── pi-response.exe           Windows executable (optional if using Linux only)
+├── pi-response-linux-x64     Linux executable (optional if using Windows only)
+└── pi-response-data/
     ├── runtime/<payload-sha256>/  Platform-specific distribution and licenses
     ├── agent/                    settings.json, models.json, saved key, Pi auth/state
     ├── sessions/                 Conversations grouped by working directory
@@ -235,11 +237,11 @@ response-drive/
     └── runtime.lock              Extraction/configuration lock
 ```
 
-To store case data elsewhere or run the executable from read-only media, set `PI_PORTABLE_HOME`. On Windows:
+To store case data elsewhere or run the executable from read-only media, set `PI_RESPONSE_HOME`. On Windows:
 
 ```powershell
-$env:PI_PORTABLE_HOME = 'E:\IR\Case-042\pi-data'
-D:\Tools\pi-portable.exe
+$env:PI_RESPONSE_HOME = 'E:\IR\Case-042\pi-data'
+D:\Tools\pi-response.exe
 ```
 
 Use an absolute path. Move the data folder too if you need the same sessions and credentials elsewhere. Treat it as sensitive case material: the wrapper does not encrypt credentials, conversations, or tool results.
@@ -284,8 +286,8 @@ Automated tests cover both launchers and actual tools using a local fake model, 
 For a Windows build:
 
 ```powershell
-git clone https://github.com/ricanwarfare/pi-portable.git
-Set-Location pi-portable
+git clone https://github.com/ricanwarfare/pi-response.git
+Set-Location pi-response
 pwsh -NoProfile -File .\scripts\build.ps1
 node --test .\tests\launcher.test.mjs
 node --test .\tests\triage.test.mjs
@@ -335,10 +337,10 @@ Upstream Pi updates are currently reviewed and applied through the pinned Window
 | `docs/` | Maintained build and troubleshooting guides |
 | `upstream*.json`, `version.json` | Pinned dependency releases and wrapper version |
 
-Generated distributions (`dist/`), caches (`.build/`), prepared Linux bundles, reference checkouts, credentials, and sessions are excluded by [`.gitignore`](.gitignore). Release history is maintained in [`CHANGELOG.md`](CHANGELOG.md); GitHub release notes are generated from it. Published binaries, checksums, and manifests live in [GitHub Releases](https://github.com/ricanwarfare/pi-portable/releases).
+Generated distributions (`dist/`), caches (`.build/`), prepared Linux bundles, reference checkouts, credentials, and sessions are excluded by [`.gitignore`](.gitignore). Release history is maintained in [`CHANGELOG.md`](CHANGELOG.md); GitHub release notes are generated from it. Published binaries, checksums, and manifests live in [GitHub Releases](https://github.com/ricanwarfare/pi-response/releases).
 
 ## Attribution and license
 
-Pi Portable is a fork of the Pi coding agent for use as a portable asset in Incident Response. The current implementation is a distribution fork: original launcher and packaging code around unmodified upstream release binaries. Development of the agent itself belongs to [earendil-works/pi](https://github.com/earendil-works/pi).
+Pi Response is a fork of the Pi coding agent for use as a portable asset in Incident Response. The current implementation is a distribution fork: original launcher and packaging code around unmodified upstream release binaries. Development of the agent itself belongs to [earendil-works/pi](https://github.com/earendil-works/pi).
 
 Launcher code is available under the [MIT License](LICENSE). Pi's copyright and MIT notice are retained in [NOTICE.txt](NOTICE.txt). Dependencies retain their original licenses; see [third-party notices](THIRD_PARTY_NOTICES.md) and the extracted distribution. This project is not affiliated with or endorsed by Pi, Ollama, or DeepSeek.

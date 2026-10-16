@@ -27,7 +27,7 @@ def safe_name(name):
 def download(item, cache):
     path = cache / item["url"].rsplit("/", 1)[1]
     if not path.exists():
-        request = urllib.request.Request(item["url"], headers={"User-Agent": "pi-portable-build"})
+        request = urllib.request.Request(item["url"], headers={"User-Agent": "pi-response-build"})
         with urllib.request.urlopen(request, timeout=120) as response:
             data = response.read()
         if digest(data) != item["sha256"]:
@@ -111,7 +111,7 @@ def main():
     if args.prepare_only:
         print(f"Prepared verified Linux payload ({len(metadata['files'])} files).")
         return
-    output = ROOT / "dist/pi-portable-linux-x64"
+    output = ROOT / "dist/pi-response-linux-x64"
     output.parent.mkdir(exist_ok=True)
     environment = {**os.environ, "GOOS": "linux", "GOARCH": "amd64", "CGO_ENABLED": "0"}
     subprocess.run(["go", "build", "-trimpath", "-ldflags=-s -w", "-o", str(output), "."],
@@ -120,7 +120,7 @@ def main():
     Path(str(output) + ".sha256").write_text(f"{sha}  {output.name}\n", encoding="utf-8")
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip() if (ROOT / ".git").exists() else None
     manifest = {
-        "schemaVersion": 1, "name": "pi-portable", "version": metadata["version"],
+        "schemaVersion": 1, "name": "pi-response", "version": metadata["version"],
         "platform": "linux-x64", "sourceCommit": commit,
         "goVersion": subprocess.check_output(["go", "version"], text=True).strip(),
         "executable": {"name": output.name, "sha256": sha},

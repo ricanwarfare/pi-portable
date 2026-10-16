@@ -73,7 +73,7 @@ if ($official) {
     $PayloadZip = $combined
     $ExpectedSha256 = (Get-FileHash -LiteralPath $PayloadZip -Algorithm SHA256).Hash
 }
-if (-not $OutputPath) { $OutputPath = Join-Path $root 'dist/pi-portable.exe' }
+if (-not $OutputPath) { $OutputPath = Join-Path $root 'dist/pi-response.exe' }
 $OutputPath = [IO.Path]::GetFullPath($OutputPath)
 New-Item -ItemType Directory -Force (Split-Path $OutputPath -Parent) | Out-Null
 $compiler = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
@@ -82,12 +82,12 @@ $buildInfo = Join-Path $buildDir 'BuildInfo.cs'
 $metadata = @(
     ('[assembly: System.Reflection.AssemblyVersion("' + $version + '.0")]'),
     ('[assembly: System.Reflection.AssemblyFileVersion("' + $version + '.0")]'),
-    '[assembly: System.Reflection.AssemblyProduct("Pi Portable")]',
+    '[assembly: System.Reflection.AssemblyProduct("Pi Response")]',
     '[assembly: System.Reflection.AssemblyDescription("Portable Pi coding agent for Incident Response")]',
     ('internal static class BuildInfo { internal const string Version = "' + $version + '"; internal const string UpstreamVersion = "' + $release.version + '"; internal const string PayloadHash = "' + $ExpectedSha256.ToLowerInvariant() + '"; }')
 )
 [IO.File]::WriteAllLines($buildInfo, $metadata)
-& $compiler /nologo /optimize+ /target:exe /platform:x64 "/out:$OutputPath" "/win32icon:$root/assets/pi-portable.ico" /reference:System.IO.Compression.dll /reference:System.IO.Compression.FileSystem.dll /reference:System.Web.Extensions.dll "/resource:$PayloadZip,payload.zip" "/resource:$root/NOTICE.txt,NOTICE.txt" "/resource:$root/config/models.json,defaults.models.json" "/resource:$root/config/settings.json,defaults.settings.json" (Join-Path $root 'src/Program.cs') $buildInfo
+& $compiler /nologo /optimize+ /target:exe /platform:x64 "/out:$OutputPath" "/win32icon:$root/assets/pi-response.ico" /reference:System.IO.Compression.dll /reference:System.IO.Compression.FileSystem.dll /reference:System.Web.Extensions.dll "/resource:$PayloadZip,payload.zip" "/resource:$root/NOTICE.txt,NOTICE.txt" "/resource:$root/config/models.json,defaults.models.json" "/resource:$root/config/settings.json,defaults.settings.json" (Join-Path $root 'src/Program.cs') $buildInfo
 if ($LASTEXITCODE -ne 0) { throw 'C# compilation failed.' }
 $hash = (Get-FileHash -LiteralPath $OutputPath -Algorithm SHA256).Hash.ToLowerInvariant()
 [IO.File]::WriteAllText("$OutputPath.sha256", "$hash  $([IO.Path]::GetFileName($OutputPath))`n")
@@ -98,7 +98,7 @@ if (Test-Path -LiteralPath (Join-Path $root '.git')) {
 }
 $manifest = [ordered]@{
     schemaVersion = 1
-    name = 'pi-portable'
+    name = 'pi-response'
     version = $version
     platform = 'windows-x64'
     sourceCommit = $sourceCommit

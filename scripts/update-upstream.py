@@ -86,7 +86,7 @@ def plan_update(root, release):
 
 
 def download(asset):
-    request = urllib.request.Request(asset['browser_download_url'], headers={'User-Agent': 'pi-portable-updater'})
+    request = urllib.request.Request(asset['browser_download_url'], headers={'User-Agent': 'pi-response-updater'})
     with urllib.request.urlopen(request, timeout=120) as response:
         data = response.read(asset['size'] + 1)
     return data
@@ -201,7 +201,7 @@ def main():
     args = parser.parse_args()
     release = gh_json('api', f'repos/{UPSTREAM}/releases/latest')
     if args.publish:
-        url = publish(ROOT, os.environ.get('GITHUB_REPOSITORY', 'ricanwarfare/pi-portable'), release)
+        url = publish(ROOT, os.environ.get('GITHUB_REPOSITORY', 'ricanwarfare/pi-response'), release)
         if url and os.environ.get('GITHUB_STEP_SUMMARY'):
             with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as summary:
                 summary.write(f'Upstream update PR: {url}\n')

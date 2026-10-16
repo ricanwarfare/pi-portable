@@ -1,6 +1,6 @@
 # Third-party software
 
-Pi Portable is an independent Incident Response distribution fork of the [Pi coding agent](https://github.com/earendil-works/pi), redistributing unmodified official artifacts inside a self-extracting launcher.
+Pi Response is an independent Incident Response distribution fork of the [Pi coding agent](https://github.com/earendil-works/pi), redistributing unmodified official artifacts inside a self-extracting launcher.
 
 | Software | Version | Source | License |
 | --- | --- | --- | --- |
@@ -12,8 +12,8 @@ Pi Portable is an independent Incident Response distribution fork of the [Pi cod
 
 Pi's official executable includes its own runtime and dependencies, which retain their original licenses. This table identifies directly downloaded distributions, not an exhaustive SBOM of Pi's transitive dependencies.
 
-Release archive URLs and SHA256 pins are recorded in [upstream-release.json](upstream-release.json) and [upstream-linux-release.json](upstream-linux-release.json). Search-tool documentation and licenses are retained. Pi's MIT notice is embedded and available through either executable's `--portable-notices` flag.
+Release archive URLs and SHA256 pins are recorded in [upstream-release.json](upstream-release.json) and [upstream-linux-release.json](upstream-linux-release.json). Search-tool documentation and licenses are retained. Pi's MIT notice is embedded and available through either executable's `--response-notices` flag.
 
 Ollama Cloud and DeepSeek are external service/model providers. Their service terms and account requirements apply separately.
 
-pi-web-search is authored by ttttmr and its contributors. Its published package declares MIT but does not contain a separate license file; the complete published source, README, and package metadata are retained unmodified. [web-search-release.json](web-search-release.json) pins the npm archive's SHA-256/SHA-512 integrity and individual file hashes. Pi Portable's opt-in adapter is separate original code.
+pi-web-search is authored by ttttmr and its contributors. Its published package declares MIT but does not contain a separate license file; the complete published source, README, and package metadata are retained unmodified. [web-search-release.json](web-search-release.json) pins the npm archive's SHA-256/SHA-512 integrity and individual file hashes. Pi Response's opt-in adapter is separate original code.

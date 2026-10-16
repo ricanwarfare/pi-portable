@@ -69,7 +69,7 @@ export function configureWeb(pi, dependencies) {
   pi.on('model_select', (event) => sync(event.model));
   pi.on('before_agent_start', (_event, ctx) => sync(ctx.model));
   pi.on('agent_end', () => { analysis = false; });
-  pi.events.on('pi-portable:collection-start', () => { collecting = true; disable(); });
-  pi.events.on('pi-portable:collection-end', () => { collecting = false; });
-  pi.events.on('pi-portable:case-analysis', () => { analysis = true; disable(); });
+  pi.events.on('pi-response:collection-start', () => { collecting = true; disable(); });
+  pi.events.on('pi-response:collection-end', () => { collecting = false; });
+  pi.events.on('pi-response:case-analysis', () => { analysis = true; disable(); });
 }

@@ -178,11 +178,11 @@ internal static class Program
     {
         try
         {
-            var collectOnly = args.Length == 1 && args[0] == "--portable-triage";
-            if (Array.IndexOf(args, "--") < 0 && Array.IndexOf(args, "--portable-triage") >= 0 && !collectOnly) throw new IOException("Use --portable-triage by itself. For labeled collection use /triage inside Pi.");
+            var collectOnly = args.Length == 1 && args[0] == "--response-triage";
+            if (Array.IndexOf(args, "--") < 0 && Array.IndexOf(args, "--response-triage") >= 0 && !collectOnly) throw new IOException("Use --response-triage by itself. For labeled collection use /triage inside Pi.");
             if (collectOnly) args = new[] { "--no-session", "--print", "/triage" };
-            var home = Environment.GetEnvironmentVariable("PI_PORTABLE_HOME");
-            if (String.IsNullOrWhiteSpace(home)) home = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "pi-portable-data");
+            var home = Environment.GetEnvironmentVariable("PI_RESPONSE_HOME");
+            if (String.IsNullOrWhiteSpace(home)) home = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "pi-response-data");
             home = Path.GetFullPath(home);
             var forwarded = new List<string>();
             var info = false;
@@ -191,22 +191,22 @@ internal static class Program
             var literal = false;
             foreach (var arg in args)
             {
-                if (!literal && arg == "--portable-notices")
+                if (!literal && arg == "--response-notices")
                 {
                     using (var notice = new StreamReader(Assembly.GetExecutingAssembly().GetManifestResourceStream("NOTICE.txt"))) Console.Write(notice.ReadToEnd());
                     return 0;
                 }
-                if (!literal && arg == "--portable-info") { info = true; continue; }
-                if (!literal && arg == "--portable-setup") { setup = true; continue; }
+                if (!literal && arg == "--response-info") { info = true; continue; }
+                if (!literal && arg == "--response-setup") { setup = true; continue; }
                 if (!literal && (arg == "--tools" || arg == "-t" || arg == "--no-tools" || arg == "-nt" || arg == "--no-builtin-tools" || arg == "-nbt")) hasTools = true;
                 forwarded.Add(arg);
                 if (arg == "--") literal = true;
             }
             if (info)
             {
-                Console.WriteLine("Pi Portable " + BuildInfo.Version + " / Windows x64\nPayload SHA256: " + BuildInfo.PayloadHash + "\nPortable home: " + home);
+                Console.WriteLine("Pi Response " + BuildInfo.Version + " / Windows x64\nPayload SHA256: " + BuildInfo.PayloadHash + "\nPortable home: " + home);
                 Console.WriteLine("Runtime: <home>\\runtime\\<payload-sha256>\nConfig/auth: <home>\\agent\nSessions: <home>\\sessions\nTemp: <home>\\tmp");
-                Console.WriteLine("Cloud preset: Ollama Cloud. First interactive launch prompts for a key; --portable-setup replaces the saved key. OLLAMA_API_KEY overrides the saved key.");
+                Console.WriteLine("Cloud preset: Ollama Cloud. First interactive launch prompts for a key; --response-setup replaces the saved key. OLLAMA_API_KEY overrides the saved key.");
                 return 0;
             }
             CheckPath(home);
@@ -234,7 +234,7 @@ internal static class Program
             if (!collectOnly && (setup || (String.IsNullOrWhiteSpace(cloudKey) && NeedsOllamaSetup(agent, forwarded))))
             {
                 if (Console.IsInputRedirected || Console.IsOutputRedirected || Console.IsErrorRedirected)
-                    throw new IOException("API key setup requires an interactive console. Run pi-portable.exe --portable-setup in a terminal, or set OLLAMA_API_KEY.");
+                    throw new IOException("API key setup requires an interactive console. Run pi-response.exe --response-setup in a terminal, or set OLLAMA_API_KEY.");
                 Console.Error.WriteLine("Ollama Cloud setup: paste your API key, then press Enter. Input is hidden; Esc or Ctrl+C cancels.");
                 Console.Error.WriteLine("The key will be saved in plaintext on this drive: " + keyPath);
                 var previousControlC = Console.TreatControlCAsInput;
@@ -278,8 +278,8 @@ internal static class Program
             start.EnvironmentVariables["PI_PACKAGE_DIR"] = runtime;
             start.EnvironmentVariables["PI_OFFLINE"] = "1";
             start.EnvironmentVariables["PI_TELEMETRY"] = "0";
-            start.EnvironmentVariables["PI_PORTABLE_VERSION"] = BuildInfo.Version;
-            start.EnvironmentVariables["PI_PORTABLE_UPSTREAM_VERSION"] = BuildInfo.UpstreamVersion;
+            start.EnvironmentVariables["PI_RESPONSE_VERSION"] = BuildInfo.Version;
+            start.EnvironmentVariables["PI_RESPONSE_UPSTREAM_VERSION"] = BuildInfo.UpstreamVersion;
             if (!String.IsNullOrWhiteSpace(cloudKey)) start.EnvironmentVariables["OLLAMA_API_KEY"] = cloudKey;
             start.EnvironmentVariables["PATH"] = Path.Combine(runtime, "tools", "rg") + ";" + Path.Combine(runtime, "tools", "fd") + ";" + Environment.GetEnvironmentVariable("PATH");
             start.EnvironmentVariables["TEMP"] = temp;
@@ -289,6 +289,6 @@ internal static class Program
             Console.CancelKeyPress += delegate(object sender, ConsoleCancelEventArgs e) { e.Cancel = true; };
             using (var child = Process.Start(start)) { child.WaitForExit(); return child.ExitCode; }
         }
-        catch (Exception error) { Console.Error.WriteLine("pi-portable: " + error.Message); return 1; }
+        catch (Exception error) { Console.Error.WriteLine("pi-response: " + error.Message); return 1; }
     }
 }

@@ -1,4 +1,4 @@
-# Original vector artwork mirrored from assets/pi-portable.svg. No external image tools required.
+# Original vector artwork mirrored from assets/pi-response.svg. No external image tools required.
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 $root = Split-Path $PSScriptRoot -Parent
@@ -44,10 +44,10 @@ foreach ($size in @(16, 24, 32, 48, 64, 128, 256)) {
     $stream = [IO.MemoryStream]::new()
     $bitmap.Save($stream, [Drawing.Imaging.ImageFormat]::Png)
     $frames += ,$stream.ToArray()
-    if ($size -eq 256) { $bitmap.Save((Join-Path $root '.build/pi-portable-icon.png'), [Drawing.Imaging.ImageFormat]::Png) }
+    if ($size -eq 256) { $bitmap.Save((Join-Path $root '.build/pi-response-icon.png'), [Drawing.Imaging.ImageFormat]::Png) }
     foreach ($resource in @($stream,$pi,$shield,$outline,$white,$teal,$navy,$tile,$graphics,$bitmap)) { $resource.Dispose() }
 }
-$file = [IO.File]::Create((Join-Path $root 'assets/pi-portable.ico'))
+$file = [IO.File]::Create((Join-Path $root 'assets/pi-response.ico'))
 $writer = [IO.BinaryWriter]::new($file)
 try {
     $writer.Write([uint16]0); $writer.Write([uint16]1); $writer.Write([uint16]$frames.Count)
@@ -63,4 +63,4 @@ try {
     }
     foreach ($frame in $frames) { $writer.Write([byte[]]$frame) }
 } finally { $writer.Dispose() }
-Write-Output 'Generated assets/pi-portable.ico (16–256 px) and .build/pi-portable-icon.png.'
+Write-Output 'Generated assets/pi-response.ico (16–256 px) and .build/pi-response-icon.png.'

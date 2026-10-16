@@ -6,7 +6,7 @@
 /src/linux/linux
 
 # Portable state and credentials (including custom homes within the checkout)
-**/pi-portable-data/
+**/pi-response-data/
 **/sessions/
 **/cases/
 **/runtime.lock

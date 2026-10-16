@@ -26,13 +26,13 @@ if (-not $OutputPath) { $OutputPath = Join-Path $root '.build/release-notes.md' 
 $OutputPath = [IO.Path]::GetFullPath($OutputPath)
 New-Item -ItemType Directory -Force (Split-Path $OutputPath -Parent) | Out-Null
 $notes = @(
-    "# Pi Portable $Tag",
+    "# Pi Response $Tag",
     '',
     'An Incident Response distribution fork of the [Pi coding agent](https://github.com/earendil-works/pi).',
     '',
     $body,
     '',
-    "See the [README](https://github.com/ricanwarfare/pi-portable/blob/$Tag/README.md) for downloads, setup, prerequisites, and incident response boundaries.",
+    "See the [README](https://github.com/ricanwarfare/pi-response/blob/$Tag/README.md) for downloads, setup, prerequisites, and incident response boundaries.",
     ''
 ) -join "`n"
 [IO.File]::WriteAllText($OutputPath, $notes)

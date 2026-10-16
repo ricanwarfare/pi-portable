@@ -32,7 +32,7 @@ const preset = JSON.parse(fs.readFileSync(path.join(root, 'config/models.json'))
 preset.providers['ollama-cloud'].baseUrl = `http://127.0.0.1:${server.address().port}/v1`;
 fs.writeFileSync(path.join(home, 'agent/models.json'), JSON.stringify(preset));
 fs.writeFileSync(path.join(home, 'agent/ollama-cloud.key'), 'local-test');
-const child = spawn(path.join(root, 'dist', process.platform === 'win32' ? 'pi-portable.exe' : 'pi-portable-linux-x64'), ['--mode', 'rpc', '--no-session'], { env: { ...process.env, PI_PORTABLE_HOME: home, OLLAMA_API_KEY: '' }, stdio: ['pipe', 'pipe', 'pipe'] });
+const child = spawn(path.join(root, 'dist', process.platform === 'win32' ? 'pi-response.exe' : 'pi-response-linux-x64'), ['--mode', 'rpc', '--no-session'], { env: { ...process.env, PI_RESPONSE_HOME: home, OLLAMA_API_KEY: '' }, stdio: ['pipe', 'pipe', 'pipe'] });
 let buffer = '', stderr = '', failure;
 const events = [], waiters = [];
 const send = value => child.stdin.write(JSON.stringify(value) + '\n');

@@ -47,7 +47,7 @@ const server = createServer(async (req, res) => {
       role: 'assistant', tool_calls: [{ index: 0, id: `call_${index}`, type: 'function', function: {
         name: calls[index][0], arguments: JSON.stringify(calls[index][1]),
       } }],
-    } : { role: 'assistant', content: 'PI_PORTABLE_SMOKE_OK' };
+    } : { role: 'assistant', content: 'PI_RESPONSE_SMOKE_OK' };
     const chunk = (value, finish_reason = null) => ({
       id: `chatcmpl-${index}`, object: 'chat.completion.chunk', created: 0, model: 'portable-smoke',
       choices: [{ index: 0, delta: value, finish_reason }], usage: { prompt_tokens: 1, completion_tokens: 1 },
@@ -64,9 +64,9 @@ try {
   await writeFile(join(home, 'agent/models.json'), JSON.stringify(preset));
   await writeFile(join(home, 'agent/ollama-cloud.key'), 'local-test');
   const windows = process.env.SystemRoot ?? 'C:\\Windows';
-  const child = spawn(join(root, linux ? 'dist/pi-portable-linux-x64' : 'dist/pi-portable.exe'), ['--print', 'Run the tool smoke test.'], {
+  const child = spawn(join(root, linux ? 'dist/pi-response-linux-x64' : 'dist/pi-response.exe'), ['--print', 'Run the tool smoke test.'], {
     cwd: scratch,
-    env: { ...process.env, OLLAMA_API_KEY: '', PI_PORTABLE_HOME: home, PATH: linux ? '/usr/bin:/bin' : [join(windows, 'System32'), windows, join(windows, 'System32/WindowsPowerShell/v1.0')].join(';') },
+    env: { ...process.env, OLLAMA_API_KEY: '', PI_RESPONSE_HOME: home, PATH: linux ? '/usr/bin:/bin' : [join(windows, 'System32'), windows, join(windows, 'System32/WindowsPowerShell/v1.0')].join(';') },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let stdout = '', stderr = '';
@@ -79,7 +79,7 @@ try {
   });
   if (serverError) throw serverError;
   assert.equal(code, 0, stdout + stderr);
-  assert.ok(stdout.includes('PI_PORTABLE_SMOKE_OK'), stdout + stderr);
+  assert.ok(stdout.includes('PI_RESPONSE_SMOKE_OK'), stdout + stderr);
   assert.equal(requests, calls.length + 1);
   const sessionProjects = await readdir(join(home, 'sessions'));
   assert.ok(sessionProjects.length > 0, 'session must be saved under portable home');

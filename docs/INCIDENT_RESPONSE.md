@@ -2,17 +2,17 @@
 
 ## Collect without an API key
 
-Run the executable with `--portable-triage` by itself:
+Run the executable with `--response-triage` by itself:
 
 ```powershell
-.\pi-portable.exe --portable-triage
+.\pi-response.exe --response-triage
 ```
 
 ```bash
-./pi-portable-linux-x64 --portable-triage
+./pi-response-linux-x64 --response-triage
 ```
 
-This runs fixed collectors locally, makes **no model request**, and prints a new case folder under `pi-portable-data/cases/`. It does not prompt for a key or create a conversation. Ordinary interactive Pi startup still uses the configured provider and first-run key setup.
+This runs fixed collectors locally, makes **no model request**, and prints a new case folder under `pi-response-data/cases/`. It does not prompt for a key or create a conversation. Ordinary interactive Pi startup still uses the configured provider and first-run key setup.
 
 | Command inside Pi | Collection scope |
 | --- | --- |
@@ -28,7 +28,7 @@ Each collection command creates a separate case. Collectors have a 30-second lim
 
 ## Analyze on your workstation
 
-Copy the **whole case folder** to your workstation. Start Pi Portable in a fresh session, then enter:
+Copy the **whole case folder** to your workstation. Start Pi Response in a fresh session, then enter:
 
 ```text
 /case E:\Cases\20261016T015414958Z-4c65de24

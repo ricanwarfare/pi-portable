@@ -2,11 +2,11 @@
 
 ## Identify paths and versions
 
-`pi-portable.exe --portable-info` reports wrapper version, payload hash, and home without extracting. `--version` reports upstream Pi. Use an absolute `PI_PORTABLE_HOME`; relative values resolve from your current directory.
+`pi-response.exe --response-info` reports wrapper version, payload hash, and home without extracting. `--version` reports upstream Pi. Use an absolute `PI_RESPONSE_HOME`; relative values resolve from your current directory.
 
 ## Authentication fails
 
-On a normal interactive launch, the wrapper asks for an Ollama key if none is saved or configured. Run `pi-portable.exe --portable-setup` to replace the launcher-saved key. It is saved in plaintext at `agent/ollama-cloud.key`; protect the drive. Escape or Ctrl+C cancels setup without changing the saved key.
+On a normal interactive launch, the wrapper asks for an Ollama key if none is saved or configured. Run `pi-response.exe --response-setup` to replace the launcher-saved key. It is saved in plaintext at `agent/ollama-cloud.key`; protect the drive. Escape or Ctrl+C cancels setup without changing the saved key.
 
 `OLLAMA_API_KEY` in the launching terminal overrides the launcher-saved value. Pi's own credentials in `auth.json` take precedence over both; manage those through Pi's `/login` and `/logout`. Verify your [Ollama key](https://ollama.com/settings/keys) and access to `deepseek-v4.1-flash`.
 
@@ -23,15 +23,15 @@ Cloud inference still needs networking when startup downloads are disabled. Chec
 Choose a writable home before running:
 
 ```powershell
-$env:PI_PORTABLE_HOME = 'E:\IR\Case-042\pi-data'
-D:\Tools\pi-portable.exe
+$env:PI_RESPONSE_HOME = 'E:\IR\Case-042\pi-data'
+D:\Tools\pi-response.exe
 ```
 
 The EXE may be on read-only media, but extraction and sessions need a writable home. There is no silent fallback to a profile/system-temp folder. Managed paths cannot contain symlinks or junctions.
 
 ## Runtime is incomplete or modified
 
-Close instances using the runtime. Locate its hash directory with `--portable-info`, move that directory aside for inspection, and restart to extract a fresh copy. Retain `agent/` and `sessions/`.
+Close instances using the runtime. Locate its hash directory with `--response-info`, move that directory aside for inspection, and restart to extract a fresh copy. Retain `agent/` and `sessions/`.
 
 Possible causes include interrupted extraction, antivirus quarantine, manual edits, or `pi update self`. Do not disable security tools or checksum checks. Verify the published checksum and follow your organization's tooling approval process.
 
@@ -45,9 +45,9 @@ The target is Windows x64 with .NET Framework 4.8 and Windows PowerShell. Pi pre
 
 ## Linux: permission denied or incompatible executable
 
-Run `chmod +x pi-portable-linux-x64` and launch from a terminal or SSH session. The current Linux target is x64 on glibc-based distributions, tested on Ubuntu 22.04 and 24.04. ARM64 and Alpine/musl are not supported by this artifact. Bash must be present.
+Run `chmod +x pi-response-linux-x64` and launch from a terminal or SSH session. The current Linux target is x64 on glibc-based distributions, tested on Ubuntu 22.04 and 24.04. ARM64 and Alpine/musl are not supported by this artifact. Bash must be present.
 
-If the USB or data location is mounted `noexec`, move the executable to a location allowing execution and set `PI_PORTABLE_HOME` to a writable, executable location too. Both the native launcher and extracted Pi runtime need execution permission. Inspect mounts with `findmnt -T /path/to/file`. The launcher does not change mounts or require root.
+If the USB or data location is mounted `noexec`, move the executable to a location allowing execution and set `PI_RESPONSE_HOME` to a writable, executable location too. Both the native launcher and extracted Pi runtime need execution permission. Inspect mounts with `findmnt -T /path/to/file`. The launcher does not change mounts or require root.
 
 New data folders request `0700` and key files request `0600`. FAT/exFAT mount options may override Unix permissions. Saved keys remain plaintext.
 

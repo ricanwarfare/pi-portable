@@ -13,7 +13,7 @@ const decode = (s) => Buffer.from(s, 'base64').toString('utf8');
 function run(args = [], options = {}) {
   const home = options.home ?? join(scratch, 'portable home');
   const child = spawnSync(options.launcher ?? launcher, args, {
-    cwd: scratch, env: { ...process.env, OLLAMA_API_KEY: '', ...options.env, PI_PORTABLE_HOME: home, PI_CODING_AGENT_DIR: 'ignored-host-config' },
+    cwd: scratch, env: { ...process.env, OLLAMA_API_KEY: '', ...options.env, PI_RESPONSE_HOME: home, PI_CODING_AGENT_DIR: 'ignored-host-config' },
     encoding: 'utf8', input: options.input, timeout: 30000,
   });
   const lines = (child.stdout ?? '').trim().split(/\r?\n/);
@@ -25,7 +25,7 @@ function run(args = [], options = {}) {
 }
 
 test('forwards Windows arguments, current directory, stdin and exit code', () => {
-  const args = ['--fixture-fail', '--fixture-stdin', '', 'space in value', 'quote"inside', 'C:\\trailing path\\', 'back\\\"quote', 'Unicode \u03c0 \u65e5\u672c', '--', '--portable-info'];
+  const args = ['--fixture-fail', '--fixture-stdin', '', 'space in value', 'quote"inside', 'C:\\trailing path\\', 'back\\\"quote', 'Unicode \u03c0 \u65e5\u672c', '--', '--response-info'];
   const result = run(args, { input: 'piped input\n' });
   assert.equal(result.status, 23, result.stderr);
   assert.deepEqual(result.actualArgs.slice(-args.length), args);
@@ -38,8 +38,8 @@ test('forwards Windows arguments, current directory, stdin and exit code', () =>
   assert.equal(result.env.PI_TELEMETRY, '0');
   assert.ok(result.actualArgs.includes('--no-context-files'));
   assert.ok(result.actualArgs.includes('--extension'));
-  assert.equal(result.env.PI_PORTABLE_VERSION, JSON.parse(readFileSync(join(root, 'version.json'), 'utf8')).version);
-  assert.equal(result.env.PI_PORTABLE_UPSTREAM_VERSION, JSON.parse(readFileSync(join(root, 'upstream-release.json'), 'utf8')).version);
+  assert.equal(result.env.PI_RESPONSE_VERSION, JSON.parse(readFileSync(join(root, 'version.json'), 'utf8')).version);
+  assert.equal(result.env.PI_RESPONSE_UPSTREAM_VERSION, JSON.parse(readFileSync(join(root, 'upstream-release.json'), 'utf8')).version);
   assert.ok(result.actualArgs.includes('read,powershell,grep,find,ls,web_search,url_context'));
 });
 
@@ -58,7 +58,7 @@ test('saved Ollama key is reused without prompting and environment can override 
 
 test('explicit setup refuses redirected input without consuming a prompt or saving a key', () => {
   const home = join(scratch, 'noninteractive setup');
-  const result = run(['--portable-setup'], { home, input: 'do-not-save-piped-input' });
+  const result = run(['--response-setup'], { home, input: 'do-not-save-piped-input' });
   assert.equal(result.status, 1);
   assert.match(result.stderr, /requires an interactive console/);
   assert.ok(!existsSync(join(home, 'agent/ollama-cloud.key')));
@@ -81,11 +81,11 @@ test('explicit tools replace defaults, and subcommands keep first position', () 
 
 test('info and notices require no extraction', () => {
   const home = join(scratch, 'info only');
-  const info = run(['--portable-info'], { home });
+  const info = run(['--response-info'], { home });
   assert.equal(info.status, 0);
   const version = JSON.parse(readFileSync(join(root, 'version.json'), 'utf8')).version;
-  assert.ok(info.stdout.includes(`Pi Portable ${version} / Windows x64`));
-  assert.equal(run(['--portable-notices'], { home }).status, 0);
+  assert.ok(info.stdout.includes(`Pi Response ${version} / Windows x64`));
+  assert.equal(run(['--response-notices'], { home }).status, 0);
   assert.ok(!existsSync(home));
 });
 
@@ -109,17 +109,17 @@ test('archive traversal is rejected without writing outside runtime', () => {
 
 test('copying only the EXE creates state beside its new location', () => {
   const folder = join(scratch, 'USB drive'); mkdirSync(folder);
-  const copied = join(folder, 'pi-portable.exe'); copyFileSync(launcher, copied);
-  const env = { ...process.env, OLLAMA_API_KEY: '' }; delete env.PI_PORTABLE_HOME;
+  const copied = join(folder, 'pi-response.exe'); copyFileSync(launcher, copied);
+  const env = { ...process.env, OLLAMA_API_KEY: '' }; delete env.PI_RESPONSE_HOME;
   const child = spawnSync(copied, [], { cwd: scratch, env, encoding: 'utf8', timeout: 30000 });
   assert.equal(child.status, 0, child.stderr);
-  assert.ok(existsSync(join(folder, 'pi-portable-data/agent')));
+  assert.ok(existsSync(join(folder, 'pi-response-data/agent')));
 });
 
 test('concurrent first launches share a complete runtime', async () => {
   const home = join(scratch, 'concurrent');
   const start = () => new Promise((resolveExit, reject) => {
-    const child = spawn(launcher, [], { env: { ...process.env, OLLAMA_API_KEY: '', PI_PORTABLE_HOME: home }, stdio: 'ignore' });
+    const child = spawn(launcher, [], { env: { ...process.env, OLLAMA_API_KEY: '', PI_RESPONSE_HOME: home }, stdio: 'ignore' });
     child.once('error', reject); child.once('exit', resolveExit);
   });
   assert.deepEqual(await Promise.all([start(), start()]), [0, 0]);

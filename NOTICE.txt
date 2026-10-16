@@ -1,4 +1,4 @@
-Pi Portable embeds an official Pi release; see the platform build manifest for its exact version.
+Pi Response embeds an official Pi release; see the platform build manifest for its exact version.
 Upstream: https://github.com/earendil-works/pi
 The runtime archive and its included dependencies retain their original licenses.
 

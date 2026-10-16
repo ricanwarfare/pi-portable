@@ -451,7 +451,7 @@ func writeKey(home, path, key string) error {
 }
 
 func environment(runtime, agent, home, cloudKey, version, upstreamVersion string) []string {
-	overrides := map[string]string{"PI_CODING_AGENT_DIR": agent, "PI_CODING_AGENT_SESSION_DIR": filepath.Join(home, "sessions"), "PI_PACKAGE_DIR": runtime, "PI_OFFLINE": "1", "PI_TELEMETRY": "0", "PI_PORTABLE_VERSION": version, "PI_PORTABLE_UPSTREAM_VERSION": upstreamVersion,
+	overrides := map[string]string{"PI_CODING_AGENT_DIR": agent, "PI_CODING_AGENT_SESSION_DIR": filepath.Join(home, "sessions"), "PI_PACKAGE_DIR": runtime, "PI_OFFLINE": "1", "PI_TELEMETRY": "0", "PI_RESPONSE_VERSION": version, "PI_RESPONSE_UPSTREAM_VERSION": upstreamVersion,
 		"PATH": filepath.Join(runtime, "tools/rg") + ":" + filepath.Join(runtime, "tools/fd") + ":" + os.Getenv("PATH"), "TMPDIR": filepath.Join(home, "tmp"), "TMP": filepath.Join(home, "tmp"), "TEMP": filepath.Join(home, "tmp"), "BUN_TMPDIR": filepath.Join(home, "tmp")}
 	if cloudKey != "" {
 		overrides["OLLAMA_API_KEY"] = cloudKey
@@ -470,13 +470,13 @@ func environment(runtime, agent, home, cloudKey, version, upstreamVersion string
 }
 
 func run(args []string) error {
-	collectOnly := len(args) == 1 && args[0] == "--portable-triage"
+	collectOnly := len(args) == 1 && args[0] == "--response-triage"
 	for _, arg := range args {
 		if arg == "--" {
 			break
 		}
-		if arg == "--portable-triage" && !collectOnly {
-			return errors.New("use --portable-triage by itself; for labeled collection use /triage inside Pi")
+		if arg == "--response-triage" && !collectOnly {
+			return errors.New("use --response-triage by itself; for labeled collection use /triage inside Pi")
 		}
 	}
 	if collectOnly {
@@ -494,9 +494,9 @@ func run(args []string) error {
 	if err != nil {
 		return err
 	}
-	home := os.Getenv("PI_PORTABLE_HOME")
+	home := os.Getenv("PI_RESPONSE_HOME")
 	if home == "" {
-		home = filepath.Join(filepath.Dir(executable), "pi-portable-data")
+		home = filepath.Join(filepath.Dir(executable), "pi-response-data")
 	}
 	home, err = filepath.Abs(home)
 	if err != nil {
@@ -507,17 +507,17 @@ func run(args []string) error {
 	for _, arg := range args {
 		if !literal {
 			switch arg {
-			case "--portable-notices":
+			case "--response-notices":
 				notice, err := bundle.ReadFile("bundle/NOTICE.txt")
 				if err != nil {
 					return err
 				}
 				fmt.Print(string(notice))
 				return nil
-			case "--portable-info":
+			case "--response-info":
 				info = true
 				continue
-			case "--portable-setup":
+			case "--response-setup":
 				setup = true
 				continue
 			case "--tools", "-t", "--no-tools", "-nt", "--no-builtin-tools", "-nbt":
@@ -530,7 +530,7 @@ func run(args []string) error {
 		}
 	}
 	if info {
-		fmt.Printf("Pi Portable %s / Linux x64\nPayload SHA256: %s\nPortable home: %s\nCloud preset: Ollama Cloud; first interactive launch prompts for a key.\n", meta.Version, meta.PayloadSHA256, home)
+		fmt.Printf("Pi Response %s / Linux x64\nPayload SHA256: %s\nPortable home: %s\nCloud preset: Ollama Cloud; first interactive launch prompts for a key.\n", meta.Version, meta.PayloadSHA256, home)
 		return nil
 	}
 	if err := checkPath(home); err != nil {
@@ -609,7 +609,7 @@ func run(args []string) error {
 	}
 	if ask {
 		if !interactive() {
-			return errors.New("API key setup requires an interactive terminal; use --portable-setup in a terminal or set OLLAMA_API_KEY")
+			return errors.New("API key setup requires an interactive terminal; use --response-setup in a terminal or set OLLAMA_API_KEY")
 		}
 		fmt.Fprintln(os.Stderr, "Ollama Cloud setup: input is hidden; Enter saves, Esc/Ctrl+C cancels.")
 		fmt.Fprintln(os.Stderr, "The key will be saved in plaintext on this drive:", keyPath)
@@ -642,7 +642,7 @@ func run(args []string) error {
 
 func main() {
 	if err := run(os.Args[1:]); err != nil {
-		fmt.Fprintln(os.Stderr, "pi-portable:", err)
+		fmt.Fprintln(os.Stderr, "pi-response:", err)
 		if errors.Is(err, canceled) {
 			os.Exit(130)
 		}

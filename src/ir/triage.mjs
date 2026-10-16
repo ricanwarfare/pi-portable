@@ -115,7 +115,7 @@ export async function collectCase(home, label = '', selected = groups, runner = 
   const root = safePath(path.join(parent, id));
   fs.mkdirSync(root, { mode: 0o700 });
   fs.mkdirSync(path.join(root, 'evidence'), { mode: 0o700 });
-  const index = { schemaVersion: 1, id, label, startedUtc: now(), hostname: os.hostname(), operator: os.userInfo().username, platform: process.platform, osRelease: os.release(), wrapperVersion: process.env.PI_PORTABLE_VERSION || 'development', upstreamVersion: process.env.PI_PORTABLE_UPSTREAM_VERSION || 'unknown', collectorVersion: 1, artifacts: [], supportingFiles: {} };
+  const index = { schemaVersion: 1, id, label, startedUtc: now(), hostname: os.hostname(), operator: os.userInfo().username, platform: process.platform, osRelease: os.release(), wrapperVersion: process.env.PI_RESPONSE_VERSION || 'development', upstreamVersion: process.env.PI_RESPONSE_UPSTREAM_VERSION || 'unknown', collectorVersion: 1, artifacts: [], supportingFiles: {} };
   const audit = [];
   const specs = collectors();
   for (const name of selected) {
@@ -184,10 +184,10 @@ export default function (pi) {
     finally { busy = false; }
   } });
   const collect = async (label, ctx, selected) => {
-    pi.events?.emit('pi-portable:collection-start', {});
-    const home = path.dirname(process.env.PI_CODING_AGENT_DIR || path.join(ctx.cwd, 'pi-portable-data/agent'));
+    pi.events?.emit('pi-response:collection-start', {});
+    const home = path.dirname(process.env.PI_CODING_AGENT_DIR || path.join(ctx.cwd, 'pi-response-data/agent'));
     try { active = await collectCase(home, label, selected); }
-    finally { pi.events?.emit('pi-portable:collection-end', {}); }
+    finally { pi.events?.emit('pi-response:collection-end', {}); }
     pending = false; answer = null;
     notify(ctx, `Collection complete: ${active.root}\nReview collection-report.md and SHA256SUMS. No model request was made.`);
   };
@@ -208,7 +208,7 @@ export default function (pi) {
     if (!ctx.model) throw new Error('Select a model before analysis.');
     const auth = await ctx.modelRegistry.getApiKeyAndHeaders(ctx.model);
     if (!auth.ok) throw new Error('Provider authentication unavailable. Use /login or check your provider configuration before retrying.');
-    pi.events?.emit('pi-portable:case-analysis', {});
+    pi.events?.emit('pi-response:case-analysis', {});
     pi.setActiveTools(['read', 'grep', 'find', 'ls']);
     const request = { requestedUtc: now(), caseId: active.index.id, provider: ctx.model?.provider, model: ctx.model?.id, evidenceManifestSha256: hash(fs.readFileSync(path.join(active.root, 'case.json'))) };
     writeNew(path.join(active.root, `analysis-request-${randomUUID()}.json`), json(request));

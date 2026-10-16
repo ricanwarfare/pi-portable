@@ -4,6 +4,11 @@ Wrapper versions are independent of upstream Pi versions.
 
 ## Unreleased
 
+## 0.6.0 — 2026-10-16
+
+- Renamed Pi Portable to Pi Response, with pi-response.exe and pi-response-linux-x64 artifacts, updated branding, documentation, and repository links.
+- Renamed state to pi-response-data, environment settings to PI_RESPONSE_*, launcher flags to --response-*, and internal extension events to pi-response:*. This release starts with fresh configuration; existing Pi Portable installations are not migrated.
+
 - Added a daily stable-Pi update workflow with archive/checksum verification, idempotent draft PR creation, and explicit Windows/Linux CI dispatch. Merging, tagging, and publishing remain manual.
 - Case metadata and version checks now derive the upstream version from build pins rather than a hard-coded value.
 

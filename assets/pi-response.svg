@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-  <title>Pi Portable: Pi inside an incident response shield</title>
+  <title>Pi Response: Pi inside an incident response shield</title>
   <rect x="4" y="4" width="248" height="248" rx="48" fill="#101c2e"/>
   <path d="M128 28 214 62V122C214 169 181 207 128 230 75 207 42 169 42 122V62Z" fill="#133c40" stroke="#50e3b5" stroke-width="10" stroke-linejoin="round"/>
   <path d="M78 84H178V101H158V150Q158 161 171 158V175Q140 181 140 151V101H115Q115 146 96 175H75Q98 141 97 101H78Z" fill="#f5fafc"/>

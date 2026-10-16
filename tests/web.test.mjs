@@ -44,12 +44,12 @@ test('consent enables tools, preserves other tools, and model changes scope URL 
 test('sessions, collection and analysis disable web without automatic restoration', async () => {
   const f = fixture();
   await f.web('on');
-  f.bus.get('pi-portable:collection-start')();
+  f.bus.get('pi-response:collection-start')();
   await assert.rejects(f.web('on'), /stays off/);
   assert.ok(!f.active().includes('web_search'));
-  f.bus.get('pi-portable:collection-end')();
+  f.bus.get('pi-response:collection-end')();
   await f.web('on');
-  f.bus.get('pi-portable:case-analysis')();
+  f.bus.get('pi-response:case-analysis')();
   await assert.rejects(f.web('on'), /stays off/);
   f.hooks.get('agent_end')();
   assert.ok(!f.active().includes('web_search'));
@@ -60,7 +60,7 @@ test('sessions, collection and analysis disable web without automatic restoratio
 
 test('stale disclosure acceptance cannot enable web across an IR operation', async () => {
   const f = fixture();
-  f.ctx.ui.confirm = async () => { f.bus.get('pi-portable:collection-start')(); f.bus.get('pi-portable:collection-end')(); return true; };
+  f.ctx.ui.confirm = async () => { f.bus.get('pi-response:collection-start')(); f.bus.get('pi-response:collection-end')(); return true; };
   await assert.rejects(f.web('on'), /changed/);
   assert.ok(!f.active().includes('web_search'));
 });
