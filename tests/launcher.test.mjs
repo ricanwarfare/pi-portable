@@ -63,9 +63,13 @@ test('explicit setup refuses redirected input without consuming a prompt or savi
   assert.match(result.stderr, /requires an interactive console/);
   assert.ok(!existsSync(join(home, 'agent/ollama-cloud.key')));
   assert.ok(!result.stderr.includes('do-not-save-piped-input'));
+  const transient = run(['--response-session-key'], { home, input: 'do-not-save-piped-input' });
+  assert.equal(transient.status, 1);
+  assert.match(transient.stderr, /interactive console/);
+  assert.ok(!existsSync(join(home, 'agent/ollama-cloud.key')));
 });
 
-test('hidden secret input supports editing and cancellation without echoing characters', () => {
+test('hidden secret input and storage choice support cancellation and session-only keys without writes', () => {
   const result = spawnSync(join(root, '.build/secret-input-test.exe'), [launcher], { encoding: 'utf8', timeout: 30000 });
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /no echo passed/);

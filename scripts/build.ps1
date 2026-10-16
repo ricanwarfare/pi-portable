@@ -103,6 +103,7 @@ $manifest = [ordered]@{
     platform = 'windows-x64'
     sourceCommit = $sourceCommit
     executable = [ordered]@{ name = [IO.Path]::GetFileName($OutputPath); sha256 = $hash }
+    signature = [ordered]@{ status = 'unsigned' }
     payloadSha256 = $ExpectedSha256.ToLowerInvariant()
     upstream = $(if ($official) { $release } else { $null })
     webSearch = $(if ($official) { $webRelease } else { $null })

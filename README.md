@@ -56,7 +56,7 @@ $actual = (Get-FileHash .\pi-response.exe -Algorithm SHA256).Hash
 if ($actual -ne $expected) { throw 'Checksum mismatch' }
 ```
 
-The EXE is currently **unsigned**. A matching SHA256 confirms the file matches the published checksum; it is not a code signature.
+The current EXE is **unsigned**; signing support is prepared but no signing account is configured. A matching SHA256 confirms the file matches the published checksum; it is not a code signature. See [Windows signing status and setup](docs/CODE_SIGNING.md).
 
 ### 2. Enter your Ollama Cloud key once
 
@@ -66,15 +66,22 @@ Create a key in [Ollama API key settings](https://ollama.com/settings/keys). **D
 .\pi-response.exe
 ```
 
-It opens a console, asks for your key if needed, and starts Pi. This remains a terminal application. With double-click launch, the working directory will normally be the EXE's folder. To investigate another directory, use PowerShell as shown below or set a shortcut's **Start in** folder.
+It opens a console, asks for your key and storage choice if needed, and starts Pi. This remains a terminal application. With double-click launch, the working directory will normally be the EXE's folder. To investigate another directory, use PowerShell as shown below or set a shortcut's **Start in** folder.
 
 The preset connects directly to `https://ollama.com/v1` using model ID `deepseek-v4.1-flash`. No model download or local Ollama service is needed. Internet access and model access on your account are required. See [Ollama's model page](https://ollama.com/library/deepseek-v4.1-flash) and [API documentation](https://docs.ollama.com/api/openai-compatibility).
 
-On the first interactive launch, paste your API key into the hidden-input prompt and press Enter. Pi starts immediately afterward. Future launches reuse the key saved at `pi-response-data/agent/ollama-cloud.key`. Escape or Ctrl+C cancels without saving.
+On the first interactive launch, paste your API key into the hidden-input prompt and press Enter, then choose:
+
+- **1 or Enter — session only (default):** pass the key to Pi for this launch without saving a launcher key file.
+- **2 — save on this drive:** save it at `pi-response-data/agent/ollama-cloud.key` for future launches.
+
+Escape or Ctrl+C cancels either prompt without changing a saved key. Pi starts after the choice. Normal launches continue to reuse an existing saved key.
 
 **The saved key is plaintext so the USB works across systems.** Protect the drive and do not share its data folder. The key is never embedded in the public EXE, echoed by the prompt, or placed in Pi's command-line arguments. Pi's own stored credentials, if configured through `/login`, take precedence.
 
-To replace the launcher-saved key, run `.\pi-response.exe --response-setup`. To avoid saving a key or to override the saved value for one process, set `$env:OLLAMA_API_KEY = '<your-key>'` before launch. Redirected input/output and RPC do not trigger automatic setup or consume piped prompts; use a saved key or the environment for automation. Resumed sessions defer authentication to Pi.
+Run `.\pi-response.exe --response-setup` to enter a key and choose storage again. To explicitly prompt for a temporary key, ignoring the launcher-saved key and inherited `OLLAMA_API_KEY` for this launch, use `.\pi-response.exe --response-session-key`. This leaves an existing saved key unchanged; it does not delete it. You can also supply a process key by setting `$env:OLLAMA_API_KEY = '<your-key>'` before launch. Redirected input/output and RPC do not trigger automatic setup or consume piped prompts; use a saved key or the environment for automation. Resumed sessions defer authentication to Pi.
+
+Session-only applies to launcher key storage, not the whole application. Configuration, cases, sessions, and temporary files can still be written. The key remains in the running process environment and can be read by a sufficiently privileged process. Pi's own `/login` credentials can still take precedence; use a fresh data folder if you need a clean credential context. Avoid putting keys in prompts, scripts, shell history, or command-line arguments.
 
 ### 3. Start an investigation
 
@@ -103,7 +110,7 @@ chmod +x pi-response-linux-x64
 ./pi-response-linux-x64
 ```
 
-On the first interactive run, enter your Ollama Cloud API key at the hidden prompt. It is saved in plaintext at `pi-response-data/agent/ollama-cloud.key`, beside the executable's location, and reused later. Use `--response-setup` to replace it. An existing `OLLAMA_API_KEY` environment variable overrides the launcher-saved key.
+On the first interactive run, enter your Ollama Cloud API key at the hidden prompt, then choose **1 or Enter for session only** or **2 to save on this drive**. Saved keys are plaintext at `pi-response-data/agent/ollama-cloud.key` and are reused later. Use `--response-setup` to choose again, or `--response-session-key` to enter a temporary key without reading or replacing the launcher-saved key. On ordinary launches an existing `OLLAMA_API_KEY` environment variable overrides the launcher-saved key.
 
 The Linux build uses `read,bash,grep,find,ls` by default. It includes Pi, ripgrep, and fd; **no Go, Node.js, Bun, Python, or local Ollama installation is required on the target**. Bash and a compatible glibc-based Linux system are required. CI validates Ubuntu 22.04 and 24.04 x64. Alpine/musl, ARM64, older distributions, and GUI double-click launch are not validated targets.
 
@@ -118,7 +125,7 @@ export PI_RESPONSE_HOME='/home/analyst/ir/case-042/pi-data'
 
 Linux files must be launched from a terminal or SSH session. The executable and extracted runtime must be on filesystems that allow execution (`noexec` mounts block them). Newly created data directories request mode `0700`, and saved keys/configuration request `0600`; filesystem support and mount options determine enforcement. FAT/exFAT USB storage may not enforce owner-only permissions. Protect the drive.
 
-For interactive remote support, request a terminal with `ssh -t analyst@host './pi-response-linux-x64'` after transferring the executable to that account's home directory. The saved key and sessions then live on the remote host, beside its executable, unless you choose another `PI_RESPONSE_HOME` there.
+For interactive remote support, request a terminal with `ssh -t analyst@host './pi-response-linux-x64'` after transferring the executable to that account's home directory. If you choose to save the key, it and the sessions then live on the remote host beside the executable, unless you choose another `PI_RESPONSE_HOME`. Session-only avoids writing the launcher key file; sessions and cases can still persist.
 
 Windows and Linux can share a portable data folder, including the saved key and model settings; each platform has its own extracted runtime hash. Use host-appropriate shell commands and review any custom settings carried between systems.
 
@@ -133,7 +140,8 @@ Examples assume the executable is on your PATH. Otherwise use `.\pi-response.exe
 | Resume the previous session | `pi-response.exe --continue` | `pi-response-linux-x64 --continue` |
 | Inspect paths and wrapper version | `pi-response.exe --response-info` | `pi-response-linux-x64 --response-info` |
 | Show upstream Pi version | `pi-response.exe --version` | `pi-response-linux-x64 --version` |
-| Replace the saved Ollama key | `pi-response.exe --response-setup` | `pi-response-linux-x64 --response-setup` |
+| Enter a key and choose storage | `pi-response.exe --response-setup` | `pi-response-linux-x64 --response-setup` |
+| Enter a temporary key for this launch | `pi-response.exe --response-session-key` | `pi-response-linux-x64 --response-session-key` |
 
 Search respects ignore rules such as `.gitignore`; it is not exhaustive forensic enumeration.
 
@@ -196,7 +204,7 @@ Search the web for Microsoft's documentation on Windows event 4624. Cite the sou
 /web off
 ```
 
-`/web on` asks you to confirm that queries and supplied URLs will go to your search provider and may incur charges. With the default Ollama Cloud preset, `web_search` and `url_context` use Ollama's search/fetch APIs and the same saved key as chat. No separate search key, npm, local Ollama daemon, or target-side installation is required. Use `/web status` to check the current state.
+`/web on` asks you to confirm that queries and supplied URLs will go to your search provider and may incur charges. With the default Ollama Cloud preset, `web_search` and `url_context` use Ollama's search/fetch APIs and the same key as chat, whether session-only or saved. No separate search key, npm, local Ollama daemon, or target-side installation is required. Use `/web status` to check the current state.
 
 Access resets when starting/resuming a session, collecting any triage group, or running `/analyze`. `/web off` cancels active web requests. Case analysis remains limited to existing evidence; finish it before enabling web research separately. These controls apply to the bundled web tools; PowerShell/Bash can still use the network.
 
@@ -277,7 +285,7 @@ For a local/private endpoint, add it to the portable `agent/models.json` followi
 | Upstream Pi | 1.3.0 |
 | Search tools | ripgrep 15.2.0, fd 10.5.0 |
 | Default connection | Ollama Cloud / DeepSeek 4.1 Flash |
-| Wrapper | 0.6.1 — Pi Response; stricter Windows runtime verification |
+| Wrapper | 0.7.0 — session-only key choice; optional signing pipeline prepared |
 
 Automated tests cover both launchers and actual tools using a local fake model, including default model selection and saved-key Bearer authentication. Linux tests also exercise a real pseudo-terminal for hidden input, replacement, and cancellation. No real provider account is used. Live Ollama account access and broader interactive TUI behavior still need validation. ARM64, macOS, and older operating systems are not validated targets.
 
@@ -290,6 +298,7 @@ git clone https://github.com/ricanwarfare/pi-response.git
 Set-Location pi-response
 pwsh -NoProfile -File .\scripts\build.ps1
 node --test .\tests\launcher.test.mjs
+node --test .\tests\signing.test.mjs
 node --test .\tests\triage.test.mjs
 node --test .\tests\web.test.mjs
 node .\tests\web-runtime.mjs

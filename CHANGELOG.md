@@ -4,6 +4,13 @@ Wrapper versions are independent of upstream Pi versions.
 
 ## Unreleased
 
+## 0.7.0 — 2026-10-16
+
+- First-run setup now offers session-only key storage by default or explicit plaintext saving on the response drive. Added --response-session-key to request a temporary key without reading or replacing the launcher-saved key. Existing saved keys continue to work on ordinary launches.
+- Windows and Linux both support cancellation before saving; session-only mode leaves existing key files unchanged. Cases, configuration, and conversations can still be written normally.
+- Prepared optional Azure Artifact Signing via OIDC in a separate tag-only job. Signing remains disabled until a signing account and repository variables are configured; this release is unsigned.
+- Added publisher, timestamp, and Authenticode verification, final signed-file checksums/provenance, explicit unsigned metadata/release notes, and rejection of unknown signing modes or failed signing. Live trusted signing cannot be exercised without a signing account.
+
 ## 0.6.1 — 2026-10-16
 
 - Windows now rejects unexpected files and symlinks/junctions anywhere in an existing runtime directory, matching the Linux integrity policy. Custom tools must live outside the extracted runtime.

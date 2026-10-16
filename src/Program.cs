@@ -38,6 +38,33 @@ internal static class Program
         }
     }
 
+    private static bool? KeyStorage(Func<ConsoleKeyInfo> readKey)
+    {
+        while (true)
+        {
+            Console.Error.Write("Storage [1] session only (default), [2] save on this drive: ");
+            var choice = ReadSecret(readKey);
+            Console.Error.WriteLine();
+            if (choice == null) return null;
+            if (choice == "" || choice == "1") return false;
+            if (choice == "2") return true;
+            Console.Error.WriteLine("Choose 1 or 2, or press Esc to cancel.");
+        }
+    }
+
+    private static void StoreKey(string home, string keyPath, string key, bool save)
+    {
+        if (!save) return;
+        using (Lock(Path.Combine(home, "runtime.lock")))
+        {
+            CheckPath(keyPath);
+            var pending = keyPath + ".pending-" + Guid.NewGuid().ToString("N");
+            File.WriteAllText(pending, key, new UTF8Encoding(false));
+            if (File.Exists(keyPath)) File.Replace(pending, keyPath, null);
+            else File.Move(pending, keyPath);
+        }
+    }
+
     private static bool NeedsOllamaSetup(string agent, List<string> args)
     {
         if (Console.IsInputRedirected || Console.IsOutputRedirected || Console.IsErrorRedirected) return false;
@@ -207,6 +234,7 @@ internal static class Program
             var forwarded = new List<string>();
             var info = false;
             var setup = false;
+            var sessionKey = false;
             var hasTools = false;
             var literal = false;
             foreach (var arg in args)
@@ -218,6 +246,7 @@ internal static class Program
                 }
                 if (!literal && arg == "--response-info") { info = true; continue; }
                 if (!literal && arg == "--response-setup") { setup = true; continue; }
+                if (!literal && arg == "--response-session-key") { sessionKey = true; continue; }
                 if (!literal && (arg == "--tools" || arg == "-t" || arg == "--no-tools" || arg == "-nt" || arg == "--no-builtin-tools" || arg == "-nbt")) hasTools = true;
                 forwarded.Add(arg);
                 if (arg == "--") literal = true;
@@ -226,7 +255,7 @@ internal static class Program
             {
                 Console.WriteLine("Pi Response " + BuildInfo.Version + " / Windows x64\nPayload SHA256: " + BuildInfo.PayloadHash + "\nPortable home: " + home);
                 Console.WriteLine("Runtime: <home>\\runtime\\<payload-sha256>\nConfig/auth: <home>\\agent\nSessions: <home>\\sessions\nTemp: <home>\\tmp");
-                Console.WriteLine("Cloud preset: Ollama Cloud. First interactive launch prompts for a key; --response-setup replaces the saved key. OLLAMA_API_KEY overrides the saved key.");
+                Console.WriteLine("Cloud preset: Ollama Cloud. First interactive launch prompts for a key; --response-setup chooses key storage; --response-session-key prompts without saving. OLLAMA_API_KEY overrides the saved key.");
                 return 0;
             }
             CheckPath(home);
@@ -250,13 +279,15 @@ internal static class Program
             var keyPath = Path.Combine(agent, "ollama-cloud.key");
             CheckPath(keyPath);
             var cloudKey = Environment.GetEnvironmentVariable("OLLAMA_API_KEY");
-            if (!collectOnly && String.IsNullOrWhiteSpace(cloudKey) && File.Exists(keyPath)) cloudKey = File.ReadAllText(keyPath).Trim();
-            if (!collectOnly && (setup || (String.IsNullOrWhiteSpace(cloudKey) && NeedsOllamaSetup(agent, forwarded))))
+            if (sessionKey) cloudKey = null;
+            if (!collectOnly && !sessionKey && String.IsNullOrWhiteSpace(cloudKey) && File.Exists(keyPath)) cloudKey = File.ReadAllText(keyPath).Trim();
+            if (!collectOnly && (setup || sessionKey || (String.IsNullOrWhiteSpace(cloudKey) && NeedsOllamaSetup(agent, forwarded))))
             {
                 if (Console.IsInputRedirected || Console.IsOutputRedirected || Console.IsErrorRedirected)
                     throw new IOException("API key setup requires an interactive console. Run pi-response.exe --response-setup in a terminal, or set OLLAMA_API_KEY.");
                 Console.Error.WriteLine("Ollama Cloud setup: paste your API key, then press Enter. Input is hidden; Esc or Ctrl+C cancels.");
-                Console.Error.WriteLine("The key will be saved in plaintext on this drive: " + keyPath);
+                Console.Error.WriteLine("Session-only keys are not saved by the launcher. Saved keys are plaintext: " + keyPath);
+                var saveKey = false;
                 var previousControlC = Console.TreatControlCAsInput;
                 try
                 {
@@ -269,17 +300,16 @@ internal static class Program
                         if (cloudKey == null) return 130;
                         if (cloudKey.Length == 0) Console.Error.WriteLine("Enter a non-empty key, or press Esc to cancel.");
                     } while (cloudKey.Length == 0);
+                    if (!sessionKey)
+                    {
+                        var choice = KeyStorage(delegate { return Console.ReadKey(true); });
+                        if (!choice.HasValue) return 130;
+                        saveKey = choice.Value;
+                    }
                 }
                 finally { Console.TreatControlCAsInput = previousControlC; }
-                using (Lock(Path.Combine(home, "runtime.lock")))
-                {
-                    CheckPath(keyPath);
-                    var pending = keyPath + ".pending-" + Guid.NewGuid().ToString("N");
-                    File.WriteAllText(pending, cloudKey, new UTF8Encoding(false));
-                    if (File.Exists(keyPath)) File.Replace(pending, keyPath, null);
-                    else File.Move(pending, keyPath);
-                }
-                Console.Error.WriteLine("Key saved. Starting Pi...");
+                StoreKey(home, keyPath, cloudKey, saveKey);
+                Console.Error.WriteLine(saveKey ? "Key saved. Starting Pi..." : "Using session-only key. Starting Pi...");
             }
             var defaults = new List<string> { "--offline", "--no-approve", "--no-extensions", "--no-mcp", "--no-skills", "--no-prompt-templates", "--no-themes", "--no-context-files" };
             defaults.AddRange(new[] { "--extension", Path.Combine(runtime, "portable", "triage.mjs") });

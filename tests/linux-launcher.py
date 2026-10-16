@@ -23,12 +23,13 @@ def run(args, home):
     return subprocess.run([str(BINARY), *args], env=environment(home), capture_output=True, timeout=40)
 
 
-def terminal(args, home, response):
+def terminal(args, home, response, storage=None):
     master, slave = pty.openpty()
     child = subprocess.Popen([str(BINARY), *args], env=environment(home), stdin=slave, stdout=slave, stderr=slave)
     os.close(slave)
     output = bytearray()
     sent = False
+    stored = False
     deadline = time.monotonic() + 40
     try:
         while time.monotonic() < deadline:
@@ -43,6 +44,9 @@ def terminal(args, home, response):
                 if not sent and b"API key: " in output:
                     os.write(master, response)
                     sent = True
+                if storage is not None and not stored and b"Storage [1]" in output:
+                    os.write(master, storage)
+                    stored = True
             if child.poll() is not None:
                 break
         code = child.wait(timeout=5)
@@ -77,11 +81,22 @@ def main():
     assert code == 130 and not (home / "agent/ollama-cloud.key").exists(), output
     # Explicit setup plus --version tests the real terminal and child launch without inference.
     for secret in (b"synthetic-first", b"synthetic-replacement"):
-        code, output = terminal(["--response-setup", "--version"], home, secret + b"\r")
+        code, output = terminal(["--response-setup", "--version"], home, secret + b"\r", b"2\r")
         assert code == 0 and b"Key saved. Starting Pi" in output, output
         assert secret not in output, "Prompt echoed key"
         key = home / "agent/ollama-cloud.key"
         assert key.read_bytes() == secret and key.stat().st_mode & 0o777 == 0o600
+    # Session-only is the default; explicit mode never prompts for storage or overwrites a saved key.
+    transient = SCRATCH / "transient"
+    code, output = terminal(["--response-setup", "--version"], transient, b"synthetic-session\r", b"\r")
+    assert code == 0 and b"Using session-only key" in output, output
+    assert b"synthetic-session" not in output
+    assert not (transient / "agent/ollama-cloud.key").exists()
+    code, output = terminal(["--response-session-key", "--version"], home, b"synthetic-once\r")
+    assert code == 0 and b"Storage [1]" not in output and b"synthetic-once" not in output, output
+    assert (home / "agent/ollama-cloud.key").read_bytes() == b"synthetic-replacement"
+    code, _ = terminal(["--response-setup", "--version"], home, b"synthetic-cancelled\r", b"\x1b")
+    assert code == 130 and (home / "agent/ollama-cloud.key").read_bytes() == b"synthetic-replacement"
     code, _ = terminal(["--response-setup", "--version"], home, b"\x03")
     assert code == 130 and (home / "agent/ollama-cloud.key").read_bytes() == b"synthetic-replacement"
     rejected = run(["--response-setup"], SCRATCH / "redirected")

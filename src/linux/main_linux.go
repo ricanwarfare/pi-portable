@@ -319,7 +319,7 @@ func readSecret(reader io.Reader) (string, error) {
 	}
 }
 
-func promptKey() (string, error) {
+func promptInput(label string, allowEmpty bool) (string, error) {
 	original, err := tty(os.Stdin.Fd())
 	if err != nil {
 		return "", err
@@ -336,7 +336,7 @@ func promptKey() (string, error) {
 	signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer signal.Stop(signals)
 	for {
-		fmt.Fprint(os.Stderr, "API key: ")
+		fmt.Fprint(os.Stderr, label)
 		type result struct {
 			key string
 			err error
@@ -352,7 +352,7 @@ func promptKey() (string, error) {
 			if value.err != nil {
 				return "", value.err
 			}
-			if value.key != "" {
+			if value.key != "" || allowEmpty {
 				return value.key, nil
 			}
 			fmt.Fprintln(os.Stderr, "Enter a non-empty key, or press Esc to cancel.")
@@ -503,7 +503,7 @@ func run(args []string) error {
 		return err
 	}
 	var forwarded []string
-	info, setup, literal, hasTools := false, false, false, false
+	info, setup, sessionKey, literal, hasTools := false, false, false, false, false
 	for _, arg := range args {
 		if !literal {
 			switch arg {
@@ -520,6 +520,9 @@ func run(args []string) error {
 			case "--response-setup":
 				setup = true
 				continue
+			case "--response-session-key":
+				sessionKey = true
+				continue
 			case "--tools", "-t", "--no-tools", "-nt", "--no-builtin-tools", "-nbt":
 				hasTools = true
 			}
@@ -530,7 +533,7 @@ func run(args []string) error {
 		}
 	}
 	if info {
-		fmt.Printf("Pi Response %s / Linux x64\nPayload SHA256: %s\nPortable home: %s\nCloud preset: Ollama Cloud; first interactive launch prompts for a key.\n", meta.Version, meta.PayloadSHA256, home)
+		fmt.Printf("Pi Response %s / Linux x64\nPayload SHA256: %s\nPortable home: %s\nCloud preset: Ollama Cloud; first interactive launch prompts for a key and storage choice. --response-session-key prompts without saving.\n", meta.Version, meta.PayloadSHA256, home)
 		return nil
 	}
 	if err := checkPath(home); err != nil {
@@ -593,14 +596,17 @@ func run(args []string) error {
 		return err
 	}
 	cloudKey := strings.TrimSpace(os.Getenv("OLLAMA_API_KEY"))
-	if !collectOnly && cloudKey == "" {
+	if sessionKey {
+		cloudKey = ""
+	}
+	if !collectOnly && !sessionKey && cloudKey == "" {
 		data, err := os.ReadFile(keyPath)
 		if err != nil && !os.IsNotExist(err) {
 			return err
 		}
 		cloudKey = strings.TrimSpace(string(data))
 	}
-	ask := setup
+	ask := setup || sessionKey
 	if !collectOnly && !ask && cloudKey == "" {
 		ask, err = needsSetup(agent, forwarded)
 		if err != nil {
@@ -611,16 +617,37 @@ func run(args []string) error {
 		if !interactive() {
 			return errors.New("API key setup requires an interactive terminal; use --response-setup in a terminal or set OLLAMA_API_KEY")
 		}
-		fmt.Fprintln(os.Stderr, "Ollama Cloud setup: input is hidden; Enter saves, Esc/Ctrl+C cancels.")
-		fmt.Fprintln(os.Stderr, "The key will be saved in plaintext on this drive:", keyPath)
-		cloudKey, err = promptKey()
+		fmt.Fprintln(os.Stderr, "Ollama Cloud setup: input is hidden; Enter accepts input, Esc/Ctrl+C cancels.")
+		fmt.Fprintln(os.Stderr, "Session-only keys are not saved by the launcher. Saved keys are plaintext:", keyPath)
+		cloudKey, err = promptInput("API key: ", false)
 		if err != nil {
 			return err
 		}
-		if err := writeKey(home, keyPath, cloudKey); err != nil {
-			return err
+		saveKey := false
+		if !sessionKey {
+			for {
+				choice, err := promptInput("Storage [1] session only (default), [2] save on this drive: ", true)
+				if err != nil {
+					return err
+				}
+				if choice == "" || choice == "1" {
+					break
+				}
+				if choice == "2" {
+					saveKey = true
+					break
+				}
+				fmt.Fprintln(os.Stderr, "Choose 1 or 2, or press Esc to cancel.")
+			}
 		}
-		fmt.Fprintln(os.Stderr, "Key saved. Starting Pi...")
+		if saveKey {
+			if err := writeKey(home, keyPath, cloudKey); err != nil {
+				return err
+			}
+			fmt.Fprintln(os.Stderr, "Key saved. Starting Pi...")
+		} else {
+			fmt.Fprintln(os.Stderr, "Using session-only key. Starting Pi...")
+		}
 	}
 	defaults := []string{"--offline", "--no-approve", "--no-extensions", "--no-mcp", "--no-skills", "--no-prompt-templates", "--no-themes", "--no-context-files"}
 	defaults = append(defaults, "--extension", filepath.Join(runtime, "portable", "triage.mjs"))

@@ -6,11 +6,11 @@
 
 ## Authentication fails
 
-On a normal interactive launch, the wrapper asks for an Ollama key if none is saved or configured. Run `pi-response.exe --response-setup` to replace the launcher-saved key. It is saved in plaintext at `agent/ollama-cloud.key`; protect the drive. Escape or Ctrl+C cancels setup without changing the saved key.
+On a normal interactive launch, the wrapper asks for an Ollama key if none is saved or configured. Run `pi-response.exe --response-setup` to enter a key and choose storage: Enter/1 is session-only; 2 saves plaintext at `agent/ollama-cloud.key`. `--response-session-key` prompts for a temporary key and leaves a saved key unchanged. Escape or Ctrl+C cancels either prompt without changing a saved key. Session-only keys must be entered again next launch; cases and sessions can still be written.
 
 `OLLAMA_API_KEY` in the launching terminal overrides the launcher-saved value. Pi's own credentials in `auth.json` take precedence over both; manage those through Pi's `/login` and `/logout`. Verify your [Ollama key](https://ollama.com/settings/keys) and access to `deepseek-v4.1-flash`.
 
-Automation/RPC and redirected input/output do not prompt. Set the environment variable or complete setup in an interactive terminal first. Setup stores the key but does not validate it with the cloud service; an invalid key is reported by Pi when making a request.
+Automation/RPC and redirected input/output do not prompt. Set the environment variable or complete setup in an interactive terminal first. Setup only stores a key when you choose save and does not validate it with the cloud service; an invalid key is reported by Pi when making a request.
 
 Never paste keys into issues. Check that `agent/models.json` references `${OLLAMA_API_KEY}` and `https://ollama.com/v1`. Existing configuration is preserved; merge the templates in `config/` if an older data folder lacks the preset.
 

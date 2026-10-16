@@ -108,3 +108,7 @@ Tag CI checks the version and requires updater tests plus successful builds and 
 Review the published downloads and notes. Never publish credentials, caches, sessions, local reference checkouts, or evidence.
 
 The tracked repository contains source, tests, configuration, build/release scripts, original icon artwork, licenses, and maintained documentation. Generated binaries are distributed through GitHub Releases. Build caches, prepared bundles, reference checkouts, sessions, and credentials remain local under `.gitignore` rules.
+
+## Windows code signing
+
+The optional signing job uses Azure Artifact Signing and OIDC only for tagged releases after all build/test jobs pass. It is disabled by default. See [CODE_SIGNING.md](CODE_SIGNING.md) for account setup, repository variables, publisher verification, and current limitations. Signing changes executable bytes, so final checksums and Windows manifest metadata are regenerated after signature verification. Linux files are unaffected.

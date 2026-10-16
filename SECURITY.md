@@ -14,4 +14,4 @@ If private reporting is unavailable, open an issue requesting a private channel 
 
 The latest published Pi Response release is the current maintenance target. Older releases may lack fixes; reproduce against the latest release when possible. Report launcher extraction, integrity, environment, credential setup, and packaging issues here. Pi vulnerabilities should also follow [upstream's security policy](https://github.com/earendil-works/pi/security/policy).
 
-Checksums detect changes to expected files; they do not protect execution on a host controlled by a privileged attacker. Public binaries are currently unsigned.
+Checksums detect changes to expected files; they do not protect execution on a host controlled by a privileged attacker. Public Windows binaries are currently unsigned; the optional signing pipeline requires a configured signing account. See [code signing status](docs/CODE_SIGNING.md).
