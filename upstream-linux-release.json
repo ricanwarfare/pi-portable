@@ -13,5 +13,10 @@
       "url": "https://github.com/sharkdp/fd/releases/download/v10.5.0/fd-v10.5.0-x86_64-unknown-linux-musl.tar.gz",
       "sha256": "761c72dc8e120d85b22292063be8a796e2eeb20eb3e4f38b8fa2343ccf3514a7"
     }
-  ]
+  ],
+  "release": {
+    "id": 414165830,
+    "url": "https://github.com/earendil-works/pi/releases/tag/v1.3.0",
+    "publishedAt": "2026-10-15T19:17:33Z"
+  }
 }
