@@ -38,7 +38,9 @@ jobs:
         shell: pwsh
         run: node --test tests/launcher.test.mjs
       - name: Case integrity and report tests
-        run: node --test tests/triage.test.mjs
+        run: node --test tests/triage.test.mjs tests/web.test.mjs
+      - name: Bundled web search and opt-in workflow
+        run: node tests/web-runtime.mjs
       - name: Offline triage from shipped executable
         run: node tests/triage-runtime.mjs
       - name: Evidence analysis and report workflow
@@ -81,7 +83,9 @@ jobs:
       - name: Linux process and terminal tests
         run: python3 tests/linux-launcher.py
       - name: Case integrity and report tests
-        run: node --test tests/triage.test.mjs
+        run: node --test tests/triage.test.mjs tests/web.test.mjs
+      - name: Bundled web search and opt-in workflow
+        run: node tests/web-runtime.mjs
       - name: Offline triage from shipped executable
         run: node tests/triage-runtime.mjs
       - name: Evidence analysis and report workflow

@@ -1,0 +1,28 @@
+{
+  "name": "pi-web-search",
+  "version": "1.7.0",
+  "url": "https://registry.npmjs.org/pi-web-search/-/pi-web-search-1.7.0.tgz",
+  "sha256": "f8abb81deb35ddc37fa6a0343737fe80b105f765f6f2ed1775bb9fd4ddfeb88d",
+  "integrity": "sha512-VthBC7G6v4vkQMgL6atADMi6XjKjoQbI0QUvn76Ldhzv+ewCTlJEN7441PSiz7reDk5AyU8kZZabOQQVNfDXjg==",
+  "source": "https://github.com/ttttmr/pi-web-search",
+  "license": "MIT",
+  "files": {
+    "README.md": "e091db7d6dd307fab934ecf5b3804ec4be70b1468bcd56a622988071ea2584bb",
+    "package.json": "6eafb49640d6fc40b24198895afb1d0ca10b06578def8bea4273d48b738b3fd8",
+    "src/api.ts": "f6208be4cadd6261de372d45b9046bf8f24d2e044a184edc2ab1484ee6d46c47",
+    "src/format.ts": "687d3768a82b3cfebdae38dd144cf9608eb195fc454c223b3c44f90225989e28",
+    "src/index.ts": "9af9bba418b696c7c75316f82e1be3495c230540f31b76c76edf3ddc8b09c918",
+    "src/providers/anthropic.ts": "1a89ffe4ba2ccb51caec61fa6f323d20f362bfb04459169b631dbc0054f1388a",
+    "src/providers/auth.ts": "b5310fb81e5aa8914d8920814bb8514fb6dc5763018f2daa7ea1673596e79165",
+    "src/providers/config.ts": "a803a2361f0276db445eb2287b8a9ac1c3a65bd95f4905487dde96ca527e687e",
+    "src/providers/google.ts": "080dc593c93ae4d19cccc6c0648e109a4c27ddcab4e79983841ca08859bbf789",
+    "src/providers/ollama.ts": "d7320e5e350cbe529be31f6d255caaf67d9be9a25edaa917cff430af340462ec",
+    "src/providers/openai.ts": "50726672b1e44f272938e8273d3696c7a7fc654589707233b7d34569057fd0e9",
+    "src/providers/results.ts": "7a4db43a8d90315df32201d7c2af6e7e127b31d83ed40c30929f601e2b6c588b",
+    "src/providers/sse.ts": "29c38c5f99bf33be97194de080811679745d98d4b768f7c88054754f55a2fbd8",
+    "src/providers/types.ts": "2525b837028331c254d2c8d1dd68a8f6bc23a421896786bfb54b57d758420b0b",
+    "src/url_context.ts": "7f13599d41f43225a6b37c48347478add51c1b9f95a92b9816e999d82145028b",
+    "src/utils.ts": "9e7888fa75f29260110b6b0eb1918ed0a5ada013185a85a28908aca048770026",
+    "src/web_search.ts": "897fe12c21720ebbf51883ba066213b92ea43a503a0b6330a61458d22461cf37"
+  }
+}

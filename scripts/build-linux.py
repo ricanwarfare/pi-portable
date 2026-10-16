@@ -69,6 +69,15 @@ def prepare():
         files[name] = (files[name][0], 0o755)
     files["licenses/GO-LICENSE.txt"] = ((ROOT / "assets/licenses/GO-LICENSE.txt").read_bytes(), 0o644)
     files["portable/triage.mjs"] = ((ROOT / "src/ir/triage.mjs").read_bytes(), 0o644)
+    web_release = json.loads((ROOT / 'web-search-release.json').read_text())
+    for name, expected in web_release['files'].items():
+        safe_name(name)
+        data = (ROOT / 'vendor/pi-web-search' / name).read_bytes()
+        if digest(data) != expected:
+            raise ValueError(f'Web package checksum mismatch: {name}')
+        files[f'vendor/pi-web-search/{name}'] = (data, 0o644)
+    for name in ('index.ts', 'gate.mjs'):
+        files[f'portable/web/{name}'] = ((ROOT / 'src/web' / name).read_bytes(), 0o644)
     bundle = ROOT / "src/linux/bundle"
     bundle.mkdir(parents=True, exist_ok=True)
     output = io.BytesIO()
@@ -115,6 +124,7 @@ def main():
         "goVersion": subprocess.check_output(["go", "version"], text=True).strip(),
         "executable": {"name": output.name, "sha256": sha},
         "payloadSha256": metadata["payloadSha256"], "upstream": release,
+        "webSearch": json.loads((ROOT / 'web-search-release.json').read_text()),
         "presets": {name: digest((ROOT / "config" / name).read_bytes()) for name in ("models.json", "settings.json")},
     }
     Path(str(output) + ".build.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")

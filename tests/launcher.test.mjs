@@ -39,7 +39,7 @@ test('forwards Windows arguments, current directory, stdin and exit code', () =>
   assert.ok(result.actualArgs.includes('--no-context-files'));
   assert.ok(result.actualArgs.includes('--extension'));
   assert.equal(result.env.PI_PORTABLE_VERSION, JSON.parse(readFileSync(join(root, 'version.json'), 'utf8')).version);
-  assert.ok(result.actualArgs.includes('read,powershell,grep,find,ls'));
+  assert.ok(result.actualArgs.includes('read,powershell,grep,find,ls,web_search,url_context'));
 });
 
 test('saved Ollama key is reused without prompting and environment can override it', () => {
@@ -73,7 +73,7 @@ test('hidden secret input supports editing and cancellation without echoing char
 test('explicit tools replace defaults, and subcommands keep first position', () => {
   const custom = run(['--tools', 'read,write']);
   assert.equal(custom.status, 0, custom.stderr);
-  assert.ok(!custom.actualArgs.includes('read,powershell,grep,find,ls'));
+  assert.ok(!custom.actualArgs.includes('read,powershell,grep,find,ls,web_search,url_context'));
   assert.deepEqual(run(['auth', '--help']).actualArgs, ['auth', '--help']);
   assert.ok(!run(['--no-tools']).actualArgs.includes('--tools'));
 });

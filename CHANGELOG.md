@@ -2,6 +2,15 @@
 
 Wrapper versions are independent of upstream Pi versions.
 
+## 0.5.0 — 2026-10-15
+
+- Bundled checksum-pinned pi-web-search 1.7.0 in both executables. No npm or extra installation is needed on target systems; Ollama Cloud search/fetch reuses the existing saved API key.
+- Added /web on, /web off, and /web status. Web tools start disabled, require session-level consent, and turn off for collection and case analysis. Turning them off cancels active web requests.
+- Preserved unmodified package source and attribution under vendor/pi-web-search, with package/archive integrity and per-file hashes recorded in web-search-release.json and release build manifests.
+- Added packaged-runtime tests for search, URL retrieval, citations, rate-limit errors, cancellation, opt-in denial, and isolation from IR collection/analysis.
+
+Web tools send queries and supplied URLs to the configured search provider and can incur charges. Restrict them to public research; tool-selection controls do not restrict network use through general shell commands. Live paid-provider access is not exercised by automated tests.
+
 ## 0.4.0 — 2026-10-15
 
 - Bundled IR commands: /triage, /host, /processes, /network, /persistence, /logons, and /timeline. Fixed collectors run with time/output limits and record failures and partial output.

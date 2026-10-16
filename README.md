@@ -22,6 +22,7 @@ This repository maintains the portable launchers, provider presets, tests, and r
 - **Bash on Linux.** A native Linux x64 launcher provides the same portable storage and Ollama setup, with Bash as the shell tool.
 - **Search utilities included.** Bundled ripgrep and fd work without target-side downloads.
 - **IR case workflow.** Collect bounded snapshots without a model call, transfer verified evidence, and export reports with checked source citations.
+- **Optional web research.** Bundled pi-web-search uses your Ollama Cloud key; enable it explicitly with `/web on`.
 - **Portable case data.** Configuration, sessions, and child-process temporary files default to a folder beside the executable, or a location you choose.
 - **Ollama Cloud preconfigured.** DeepSeek 4.1 Flash is selected by default; supply your own API key.
 - **Less automatic loading from the host.** Normal agent launches disable workspace instruction/extension discovery, project approval, MCP, startup downloads, and telemetry.
@@ -181,7 +182,27 @@ Copy the whole case folder to your workstation, start Pi in a fresh session, and
 
 `/analyze` asks before sending case material to the selected provider and selects inspection tools. `/report` exports Markdown/JSON findings with observations, hypotheses, confidence, unanswered questions, and evidence citations. Export checks artifact hashes and source line ranges; it does not verify the model's interpretation. Analyst review is required.
 
-Inside Pi, `/triage [label]` collects all groups. `/host`, `/processes`, `/network`, `/persistence`, `/logons`, and `/timeline` collect individual groups into new cases. See the [IR workflow and collection limits](docs/INCIDENT_RESPONSE.md) for details. Live collection leaves a footprint and is not a forensic image or a guarantee that a host is clean. Dedicated web search is not included in this release.
+Inside Pi, `/triage [label]` collects all groups. `/host`, `/processes`, `/network`, `/persistence`, `/logons`, and `/timeline` collect individual groups into new cases. See the [IR workflow and collection limits](docs/INCIDENT_RESPONSE.md) for details. Live collection leaves a footprint and is not a forensic image or a guarantee that a host is clean.
+
+## Web research
+
+Both executables bundle [pi-web-search 1.7.0](https://github.com/ttttmr/pi-web-search). Web tools are **off by default**. Inside Pi:
+
+```text
+/web on
+Search the web for Microsoft's documentation on Windows event 4624. Cite the source URLs.
+/web off
+```
+
+`/web on` asks you to confirm that queries and supplied URLs will go to your search provider and may incur charges. With the default Ollama Cloud preset, `web_search` and `url_context` use Ollama's search/fetch APIs and the same saved key as chat. No separate search key, npm, local Ollama daemon, or target-side installation is required. Use `/web status` to check the current state.
+
+Access resets when starting/resuming a session, collecting any triage group, or running `/analyze`. `/web off` cancels active web requests. Case analysis remains limited to existing evidence; finish it before enabling web research separately. These controls apply to the bundled web tools; PowerShell/Bash can still use the network.
+
+Use public research terms. Do not submit raw logs, credentials, internal hostnames, or private case identifiers. Retrieved pages are untrusted sources, and web claims should be distinguished from collected host evidence. Results and source URLs appear in the conversation and are retained when session persistence is enabled; they are not automatically added to a case evidence manifest.
+
+An explicit `--tools` allowlist must include `web_search,url_context` if you want `/web on` to enable them. For example, `--tools read,grep,find,ls,web_search,url_context` permits inspection and optional research. `--no-tools` or `--exclude-tools` restrictions are respected. A dialog-capable interactive or RPC session is required to enable access.
+
+The package supports other provider-native search APIs and an optional `agent/web-search.json` override for a dedicated search model. URL retrieval is available for Ollama Cloud and Gemini; support depends on the selected provider. See the [upstream package documentation](vendor/pi-web-search/README.md). Automated tests use fake Ollama endpoints; live account access and other provider integrations require separate validation.
 
 ## How it works
 
@@ -240,7 +261,7 @@ For a local/private endpoint, add it to the portable `agent/models.json` followi
 - **Cloud evidence handling:** prompts and included tool results go to the selected provider, Ollama Cloud by default. Use an endpoint approved for your evidence-handling requirements.
 - **Host changes:** Pi runs with the launching account's permissions. PowerShell, Bash, and enabled integrations can modify the host. This is not a sandbox, forensic write blocker, or zero-artifact tool.
 - **Host trust:** integrity checks detect changed expected runtime files. They cannot establish trust in a compromised host or stop a privileged attacker changing files after verification.
-- **Automatic discovery:** normal launches disable project approval, AGENTS.md/CLAUDE.md discovery, extensions, skills, prompt templates, custom themes, and MCP. Explicit extension/skill paths can still load code or instructions.
+- **Automatic discovery:** normal launches disable project approval, AGENTS.md/CLAUDE.md discovery, extension/skill discovery, prompt templates, custom themes, and MCP. The bundled IR and web adapters are loaded explicitly; additional explicit extension/skill paths can still load code or instructions.
 - **Network behavior:** startup network operations and telemetry are disabled. Inference and explicitly invoked commands can still use the network. Pi's `--offline` flag does not make cloud inference work offline.
 - **Subcommands:** upstream commands such as `auth`, `install`, and `update` run directly with the portable environment; normal agent-launch flags are not prepended.
 
@@ -254,7 +275,7 @@ For a local/private endpoint, add it to the portable `agent/models.json` followi
 | Upstream Pi | 1.3.0 |
 | Search tools | ripgrep 15.2.0, fd 10.5.0 |
 | Default connection | Ollama Cloud / DeepSeek 4.1 Flash |
-| Wrapper | 0.4.0 — IR collection, cases, and evidence-cited reports |
+| Wrapper | 0.5.0 — bundled web search with explicit session opt-in |
 
 Automated tests cover both launchers and actual tools using a local fake model, including default model selection and saved-key Bearer authentication. Linux tests also exercise a real pseudo-terminal for hidden input, replacement, and cancellation. No real provider account is used. Live Ollama account access and broader interactive TUI behavior still need validation. ARM64, macOS, and older operating systems are not validated targets.
 
@@ -268,6 +289,8 @@ Set-Location pi-portable
 pwsh -NoProfile -File .\scripts\build.ps1
 node --test .\tests\launcher.test.mjs
 node --test .\tests\triage.test.mjs
+node --test .\tests\web.test.mjs
+node .\tests\web-runtime.mjs
 node .\tests\triage-runtime.mjs
 node .\tests\triage-analysis-smoke.mjs
 node .\tests\runtime-smoke.mjs
@@ -283,6 +306,8 @@ cd src/linux && go test -v ./... && go vet ./...
 cd ../..
 python3 tests/linux-launcher.py
 node --test tests/triage.test.mjs
+node --test tests/web.test.mjs
+node tests/web-runtime.mjs
 node tests/triage-runtime.mjs
 node tests/triage-analysis-smoke.mjs
 node tests/runtime-smoke.mjs

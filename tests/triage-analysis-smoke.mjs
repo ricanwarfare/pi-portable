@@ -70,8 +70,12 @@ try {
   send({ type: 'extension_ui_response', id: first.id, confirmed: false });
   await wait(e => e.type === 'response' && e.id === 'decline');
   assert.equal(requests, 0);
+  send({ type: 'prompt', id: 'enable-web', message: '/web on' });
+  const webDisclosure = await wait(e => e.type === 'extension_ui_request' && e.method === 'confirm' && e.title === 'Enable public web research?');
+  send({ type: 'extension_ui_response', id: webDisclosure.id, confirmed: true });
+  await wait(e => e.type === 'response' && e.id === 'enable-web');
   send({ type: 'prompt', id: 'accept', message: '/analyze' });
-  const second = await wait(e => e.type === 'extension_ui_request' && e.method === 'confirm' && e.id !== first.id);
+  const second = await wait(e => e.type === 'extension_ui_request' && e.method === 'confirm' && e.title === first.title && e.id !== first.id);
   send({ type: 'extension_ui_response', id: second.id, confirmed: true });
   await wait(e => e.type === 'agent_end');
   if (serverError) throw serverError;
@@ -81,6 +85,8 @@ try {
   const report = fs.readdirSync(sample.root).find(name => /^analysis-.*\.md$/.test(name));
   assert.ok(report);
   assert.match(fs.readFileSync(path.join(sample.root, report), 'utf8'), /processes.stdout.txt:1-1/);
+  await prompt('web-status', '/web status');
+  assert.ok(events.some(e => e.type === 'extension_ui_request' && e.message === 'Web research: off.'));
   if (failure) throw failure;
   console.log('PASS: real bundled IR workflow verifies case, respects disclosure denial, reads synthetic evidence through model tools, captures completed analysis and exports a validated report.');
 } finally {

@@ -263,7 +263,8 @@ internal static class Program
             }
             var defaults = new List<string> { "--offline", "--no-approve", "--no-extensions", "--no-mcp", "--no-skills", "--no-prompt-templates", "--no-themes", "--no-context-files" };
             defaults.AddRange(new[] { "--extension", Path.Combine(runtime, "portable", "triage.mjs") });
-            if (!hasTools) defaults.AddRange(new[] { "--tools", "read,powershell,grep,find,ls" });
+            defaults.AddRange(new[] { "--extension", Path.Combine(runtime, "portable", "web", "index.ts") });
+            if (!hasTools) defaults.AddRange(new[] { "--tools", "read,powershell,grep,find,ls,web_search,url_context" });
             // Upstream dispatches subcommands by args[0]; flags must not precede them.
             if (forwarded.Count > 0 && Array.IndexOf(new[] { "auth", "install", "remove", "uninstall", "update", "list", "config", "mcp" }, forwarded[0]) >= 0) defaults.Clear();
             defaults.AddRange(forwarded);

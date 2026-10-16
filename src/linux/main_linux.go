@@ -623,8 +623,9 @@ func run(args []string) error {
 	}
 	defaults := []string{"--offline", "--no-approve", "--no-extensions", "--no-mcp", "--no-skills", "--no-prompt-templates", "--no-themes", "--no-context-files"}
 	defaults = append(defaults, "--extension", filepath.Join(runtime, "portable", "triage.mjs"))
+	defaults = append(defaults, "--extension", filepath.Join(runtime, "portable", "web", "index.ts"))
 	if !hasTools {
-		defaults = append(defaults, "--tools", "read,bash,grep,find,ls")
+		defaults = append(defaults, "--tools", "read,bash,grep,find,ls,web_search,url_context")
 	}
 	if len(forwarded) > 0 && subcommand(forwarded[0]) {
 		defaults = nil

@@ -3,3 +3,4 @@
 *.zip binary
 *.png binary
 *.ico binary
+vendor/pi-web-search/** -text -whitespace

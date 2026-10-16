@@ -15,6 +15,8 @@ The build consumes official archives; it needs no Pi checkout or npm dependencie
 pwsh -NoProfile -File .\scripts\build.ps1
 node --test .\tests\launcher.test.mjs
 node --test .\tests\triage.test.mjs
+node --test .\tests\web.test.mjs
+node .\tests\web-runtime.mjs
 node .\tests\triage-runtime.mjs
 node .\tests\triage-analysis-smoke.mjs
 node .\tests\runtime-smoke.mjs
@@ -42,6 +44,8 @@ go vet ./...
 cd ../..
 python3 tests/linux-launcher.py
 node --test tests/triage.test.mjs
+node --test tests/web.test.mjs
+node tests/web-runtime.mjs
 node tests/triage-runtime.mjs
 node tests/triage-analysis-smoke.mjs
 node tests/runtime-smoke.mjs
@@ -54,6 +58,10 @@ Prepared assets are generated under the ignored `src/linux/bundle/`; downloads a
 Linux integration tests use a real pseudo-terminal to check setup, hidden input, replacement/cancellation, `0600` key permissions, copied-EXE behavior, concurrent startup, config preservation, tamper detection, and symlink rejection. The shared runtime test uses Bash on Linux and PowerShell on Windows. CI tests Ubuntu 22.04 and 24.04; the Ubuntu 22.04 artifact is published. Live provider access and other distributions remain separate checks.
 
 ## Update dependencies
+
+The unmodified pi-web-search package sources are tracked under `vendor/pi-web-search/`. Both builds check every packaged file against `web-search-release.json` before embedding it alongside the original README and package metadata. The adapter lives in `src/web/`. No npm installation or package lifecycle script is used. File bytes are preserved through Git checkout with a scoped `.gitattributes` rule. Release manifests include the package version, archive integrity, and source-file pins.
+
+To update this package, review the exact npm release and source, verify the downloaded archive against npm's SHA-512 integrity, record its SHA-256, replace the complete vendored package, and regenerate the per-file SHA-256 table. Keep the publisher's bytes unchanged and review any license or peer dependency changes. Run the web unit/runtime tests and both platform CI jobs. The runtime tests use fake Ollama model/search/fetch endpoints, not a paid account; they cover disclosure denial, existing-key authentication, source URLs, HTTP 429, cancellation, and IR isolation.
 
 1. Review official upstream releases and compatibility changes.
 2. Update exact URLs and SHA256 pins in `upstream-release.json` and `upstream-linux-release.json`, verifying the publisher's metadata.

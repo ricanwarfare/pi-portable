@@ -184,8 +184,10 @@ export default function (pi) {
     finally { busy = false; }
   } });
   const collect = async (label, ctx, selected) => {
+    pi.events?.emit('pi-portable:collection-start', {});
     const home = path.dirname(process.env.PI_CODING_AGENT_DIR || path.join(ctx.cwd, 'pi-portable-data/agent'));
-    active = await collectCase(home, label, selected);
+    try { active = await collectCase(home, label, selected); }
+    finally { pi.events?.emit('pi-portable:collection-end', {}); }
     pending = false; answer = null;
     notify(ctx, `Collection complete: ${active.root}\nReview collection-report.md and SHA256SUMS. No model request was made.`);
   };
@@ -206,6 +208,7 @@ export default function (pi) {
     if (!ctx.model) throw new Error('Select a model before analysis.');
     const auth = await ctx.modelRegistry.getApiKeyAndHeaders(ctx.model);
     if (!auth.ok) throw new Error('Provider authentication unavailable. Use /login or check your provider configuration before retrying.');
+    pi.events?.emit('pi-portable:case-analysis', {});
     pi.setActiveTools(['read', 'grep', 'find', 'ls']);
     const request = { requestedUtc: now(), caseId: active.index.id, provider: ctx.model?.provider, model: ctx.model?.id, evidenceManifestSha256: hash(fs.readFileSync(path.join(active.root, 'case.json'))) };
     writeNew(path.join(active.root, `analysis-request-${randomUUID()}.json`), json(request));

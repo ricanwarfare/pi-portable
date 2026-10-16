@@ -52,6 +52,22 @@ if ($official) {
         $irSource = [IO.File]::OpenRead((Join-Path $root 'src/ir/triage.mjs'))
         $irOutput = $irEntry.Open()
         try { $irSource.CopyTo($irOutput) } finally { $irSource.Dispose(); $irOutput.Dispose() }
+        $webRelease = Get-Content (Join-Path $root 'web-search-release.json') -Raw | ConvertFrom-Json
+        foreach ($entry in $webRelease.files.PSObject.Properties) {
+            if ($entry.Name -notmatch '^(src/[a-z_/]+\.ts|README\.md|package\.json)$' -or $entry.Name.Contains('..')) { throw 'Unsafe web package path' }
+            $file = Join-Path $root "vendor/pi-web-search/$($entry.Name)"
+            if ((Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash -ne $entry.Value) { throw "Web package checksum mismatch: $($entry.Name)" }
+            $target = $archive.CreateEntry("vendor/pi-web-search/$($entry.Name)")
+            $inputStream = [IO.File]::OpenRead($file)
+            $outputStream = $target.Open()
+            try { $inputStream.CopyTo($outputStream) } finally { $inputStream.Dispose(); $outputStream.Dispose() }
+        }
+        foreach ($name in @('index.ts', 'gate.mjs')) {
+            $target = $archive.CreateEntry("portable/web/$name")
+            $inputStream = [IO.File]::OpenRead((Join-Path $root "src/web/$name"))
+            $outputStream = $target.Open()
+            try { $inputStream.CopyTo($outputStream) } finally { $inputStream.Dispose(); $outputStream.Dispose() }
+        }
     } finally { $archive.Dispose() }
     $PayloadZip = $combined
     $ExpectedSha256 = (Get-FileHash -LiteralPath $PayloadZip -Algorithm SHA256).Hash
@@ -88,6 +104,7 @@ $manifest = [ordered]@{
     executable = [ordered]@{ name = [IO.Path]::GetFileName($OutputPath); sha256 = $hash }
     payloadSha256 = $ExpectedSha256.ToLowerInvariant()
     upstream = $(if ($official) { $release } else { $null })
+    webSearch = $(if ($official) { $webRelease } else { $null })
     presets = [ordered]@{
         modelsSha256 = (Get-FileHash -LiteralPath (Join-Path $root 'config/models.json') -Algorithm SHA256).Hash.ToLowerInvariant()
         settingsSha256 = (Get-FileHash -LiteralPath (Join-Path $root 'config/settings.json') -Algorithm SHA256).Hash.ToLowerInvariant()
