@@ -6,6 +6,7 @@ import { resolve, join } from 'node:path';
 
 // A local fake model requests actual tools; no provider account, key, or paid tokens.
 const root = resolve(import.meta.dirname, '..');
+const linux = process.platform === 'linux';
 const scratch = await mkdtemp(join(root, '.build/runtime smoke '));
 const home = join(scratch, 'portable home');
 await mkdir(join(home, 'agent'), { recursive: true });
@@ -15,7 +16,7 @@ await writeFile(join(scratch, 'AGENTS.md'), 'UNTRUSTED_WORKSPACE_INSTRUCTION_MAR
 await mkdir(join(scratch, '.pi/extensions'), { recursive: true });
 await writeFile(join(scratch, '.pi/extensions/hostile.ts'), 'throw new Error("UNTRUSTED_EXTENSION_LOADED");');
 const calls = [
-  ['powershell', { command: "[Console]::WriteLine('PORTABLE_POWERSHELL_OK')" }, 'PORTABLE_POWERSHELL_OK'],
+  linux ? ['bash', { command: "printf 'PORTABLE_BASH_OK\\n'" }, 'PORTABLE_BASH_OK'] : ['powershell', { command: "[Console]::WriteLine('PORTABLE_POWERSHELL_OK')" }, 'PORTABLE_POWERSHELL_OK'],
   ['read', { path: 'evidence.txt' }, 'PORTABLE_EVIDENCE_MARKER'],
   ['grep', { pattern: 'PORTABLE_EVIDENCE_MARKER', path: 'evidence.txt' }, 'PORTABLE_EVIDENCE_MARKER'],
   ['find', { pattern: '*.txt', path: '.' }, 'evidence.txt'],
@@ -63,9 +64,9 @@ try {
   await writeFile(join(home, 'agent/models.json'), JSON.stringify(preset));
   await writeFile(join(home, 'agent/ollama-cloud.key'), 'local-test');
   const windows = process.env.SystemRoot ?? 'C:\\Windows';
-  const child = spawn(join(root, 'dist/pi-portable.exe'), ['--print', 'Run the tool smoke test.'], {
+  const child = spawn(join(root, linux ? 'dist/pi-portable-linux-x64' : 'dist/pi-portable.exe'), ['--print', 'Run the tool smoke test.'], {
     cwd: scratch,
-    env: { ...process.env, OLLAMA_API_KEY: '', PI_PORTABLE_HOME: home, PATH: [join(windows, 'System32'), windows, join(windows, 'System32/WindowsPowerShell/v1.0')].join(';') },
+    env: { ...process.env, OLLAMA_API_KEY: '', PI_PORTABLE_HOME: home, PATH: linux ? '/usr/bin:/bin' : [join(windows, 'System32'), windows, join(windows, 'System32/WindowsPowerShell/v1.0')].join(';') },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   let stdout = '', stderr = '';
@@ -84,6 +85,6 @@ try {
   assert.ok(sessionProjects.length > 0, 'session must be saved under portable home');
   const savedModels = await readFile(join(home, 'agent/models.json'), 'utf8');
   assert.ok(!savedModels.includes('local-test'), 'key must not be saved to config');
-  console.log('PASS: Ollama Cloud preset, default DeepSeek 4.1 selection, Bearer authentication, PowerShell, read, grep, find, ls; portable sessions; disabled workspace discovery; system-only PATH.');
+  console.log(`PASS: Ollama Cloud preset, default DeepSeek 4.1 selection, saved-key Bearer authentication, ${linux ? 'Bash' : 'PowerShell'}, read, grep, find, ls; portable sessions; disabled workspace discovery; system-only PATH.`);
   console.log(`Test artifacts: ${scratch}`);
 } finally { server.closeAllConnections(); await new Promise(resolveClose => server.close(resolveClose)); }

@@ -43,6 +43,14 @@ Download the new EXE and checksum, verify them, then replace the old EXE while i
 
 The target is Windows x64 with .NET Framework 4.8 and Windows PowerShell. Pi prefers PowerShell 7 if available. PowerShell is not installed by the launcher. ARM64 and older Windows versions are not validated.
 
+## Linux: permission denied or incompatible executable
+
+Run `chmod +x pi-portable-linux-x64` and launch from a terminal or SSH session. The current Linux target is x64 on glibc-based distributions, tested on Ubuntu 22.04 and 24.04. ARM64 and Alpine/musl are not supported by this artifact. Bash must be present.
+
+If the USB or data location is mounted `noexec`, move the executable to a location allowing execution and set `PI_PORTABLE_HOME` to a writable, executable location too. Both the native launcher and extracted Pi runtime need execution permission. Inspect mounts with `findmnt -T /path/to/file`. The launcher does not change mounts or require root.
+
+New data folders request `0700` and key files request `0600`. FAT/exFAT mount options may override Unix permissions. Saved keys remain plaintext.
+
 ## Bug reports
 
 Include wrapper/upstream versions, Windows version/architecture, command structure, and redacted errors. State whether a fresh portable home reproduces the issue and whether media is removable/read-only. Never attach auth files, sessions, keys, or case evidence.

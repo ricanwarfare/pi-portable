@@ -8,3 +8,5 @@ pi-portable-data/
 **/ollama-cloud.key*
 *.pfx
 *.p12
+src/linux/bundle/
+**/__pycache__/

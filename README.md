@@ -4,21 +4,22 @@
 
 **The Pi coding agent, packaged as a portable asset for Incident Response.**
 
-[![Windows build](https://github.com/ricanwarfare/pi-portable/actions/workflows/windows.yml/badge.svg)](https://github.com/ricanwarfare/pi-portable/actions/workflows/windows.yml)
+[![Windows and Linux builds](https://github.com/ricanwarfare/pi-portable/actions/workflows/windows.yml/badge.svg)](https://github.com/ricanwarfare/pi-portable/actions/workflows/windows.yml)
 [![Latest release](https://img.shields.io/github/v/release/ricanwarfare/pi-portable)](https://github.com/ricanwarfare/pi-portable/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Pi Portable is an **Incident Response distribution fork of the [Pi coding agent](https://github.com/earendil-works/pi)** by Mario Zechner and the Pi contributors. Carry one Windows executable onto a system, connect to your model provider, and use Pi to inspect processes, examine logs, and work through an investigation from the terminal.
+Pi Portable is an **Incident Response distribution fork of the [Pi coding agent](https://github.com/earendil-works/pi)** by Mario Zechner and the Pi contributors. Carry one Windows or Linux executable onto a system, connect to your model provider, and use Pi to inspect processes, examine logs, and work through an investigation from the terminal.
 
-This repository maintains the portable launcher, provider presets, tests, and release tooling. It packages the **unmodified official Pi Windows binary** rather than modifying Pi's agent source. It is an independent project, not an official Pi release.
+This repository maintains the portable launchers, provider presets, tests, and release tooling. It packages **unmodified official Pi binaries** rather than modifying Pi's agent source. It is an independent project, not an official Pi release.
 
-[**Download Windows x64**](https://github.com/ricanwarfare/pi-portable/releases/latest) · [Quick start](#quick-start) · [Build from source](docs/BUILDING.md) · [Troubleshooting](docs/TROUBLESHOOTING.md)
+[**Download Windows / Linux x64**](https://github.com/ricanwarfare/pi-portable/releases/latest) · [Windows quick start](#quick-start) · [Linux quick start](#linux) · [Build from source](docs/BUILDING.md) · [Troubleshooting](docs/TROUBLESHOOTING.md)
 
 ## Why Pi Portable?
 
 - **One file to carry.** Distribute `pi-portable.exe`; the runtime and assets are embedded.
 - **No development tools on the target.** No Node.js, Bun, npm, Git Bash, or local Ollama installation required.
 - **PowerShell for Windows investigations.** Inspect the host using its native shell alongside Pi's file-reading and search tools.
+- **Bash on Linux.** A native Linux x64 launcher provides the same portable storage and Ollama setup, with Bash as the shell tool.
 - **Search utilities included.** Bundled ripgrep and fd work without target-side downloads.
 - **Portable case data.** Configuration, sessions, and child-process temporary files default to a folder beside the EXE, or a location you choose.
 - **Ollama Cloud preconfigured.** DeepSeek 4.1 Flash is selected by default; supply your own API key.
@@ -74,6 +75,33 @@ E:\Tools\pi-portable.exe -p 'Use PowerShell to list running processes, their pat
 ```
 
 Validate findings against the original evidence. Model conclusions are not a substitute for evidence preservation or analyst judgment.
+
+## Linux
+
+Download `pi-portable-linux-x64` and its `.sha256` file from the [latest release](https://github.com/ricanwarfare/pi-portable/releases/latest). Put the executable on your response drive or transfer it to a support host:
+
+```bash
+sha256sum -c pi-portable-linux-x64.sha256
+chmod +x pi-portable-linux-x64
+./pi-portable-linux-x64
+```
+
+On the first interactive run, enter your Ollama Cloud API key at the hidden prompt. It is saved in plaintext at `pi-portable-data/agent/ollama-cloud.key`, beside the executable's location, and reused later. Use `--portable-setup` to replace it. An existing `OLLAMA_API_KEY` environment variable overrides the launcher-saved key.
+
+The Linux build uses `read,bash,grep,find,ls` by default. It includes Pi, ripgrep, and fd; **no Go, Node.js, Bun, Python, or local Ollama installation is required on the target**. Bash and a compatible glibc-based Linux system are required. CI validates Ubuntu 22.04 and 24.04 x64. Alpine/musl, ARM64, older distributions, and GUI double-click launch are not validated targets.
+
+```bash
+# Keep the executable and case data on an executable, writable filesystem.
+export PI_PORTABLE_HOME='/home/analyst/ir/case-042/pi-data'
+/media/usb/pi-portable-linux-x64
+
+# One support task; shell commands can change the remote host.
+./pi-portable-linux-x64 -p 'Use Bash to list listening TCP ports and identify their processes.'
+```
+
+Linux files must be launched from a terminal or SSH session. The executable and extracted runtime must be on filesystems that allow execution (`noexec` mounts block them). Newly created data directories request mode `0700`, and saved keys/configuration request `0600`; filesystem support and mount options determine enforcement. FAT/exFAT USB storage may not enforce owner-only permissions. Protect the drive.
+
+Windows and Linux can share a portable data folder, including the saved key and model settings; each platform has its own extracted runtime hash. Use host-appropriate shell commands and review any custom settings carried between systems.
 
 ## Investigation examples
 
@@ -166,14 +194,15 @@ For a local/private endpoint, follow [Pi's compatible-endpoint configuration](ht
 
 | Component | Current target |
 | --- | --- |
-| Platform | Windows x64 |
-| Host prerequisites | .NET Framework 4.8 and Windows PowerShell |
+| Platforms | Windows x64; Linux x64 (Ubuntu 22.04/24.04 CI) |
+| Windows prerequisites | .NET Framework 4.8 and Windows PowerShell |
+| Linux prerequisites | Bash, compatible glibc Linux, executable filesystem |
 | Upstream Pi | 1.3.0 |
 | Search tools | ripgrep 15.2.0, fd 10.5.0 |
 | Default connection | Ollama Cloud / DeepSeek 4.1 Flash |
-| Wrapper | 0.2.1 — executable icon |
+| Wrapper | 0.3.0 — Linux x64 support |
 
-Automated tests cover the launcher and actual tools using a local fake model, including default model selection and Bearer authentication. No real provider account is used. Clean-VM compatibility, live Ollama account access, and interactive console behavior still need broader validation. ARM64, Linux, macOS, and older Windows versions are not validated targets.
+Automated tests cover both launchers and actual tools using a local fake model, including default model selection and saved-key Bearer authentication. Linux tests also exercise a real pseudo-terminal for hidden input, replacement, and cancellation. No real provider account is used. Live Ollama account access and broader interactive TUI behavior still need validation. ARM64, macOS, and older operating systems are not validated targets.
 
 ## Build, update, and contribute
 
@@ -187,7 +216,7 @@ node .\tests\runtime-smoke.mjs
 
 Building requires Windows, PowerShell 7, and the .NET Framework C# compiler; tests also need Node.js 22+. A .NET SDK is not required. Builds download checksum-pinned official archives; cached archives allow subsequent builds without networking.
 
-See [building and release instructions](docs/BUILDING.md), [contributing](CONTRIBUTING.md), and the [changelog](CHANGELOG.md). The [Windows workflow](.github/workflows/windows.yml) builds and tests release files before publication.
+See [building and release instructions](docs/BUILDING.md), [contributing](CONTRIBUTING.md), and the [changelog](CHANGELOG.md). The [Windows and Linux workflow](.github/workflows/windows.yml) builds and tests both platforms before publication.
 
 Update by downloading a new release and retaining your data folder. **Do not use `pi update self` to update the wrapper**: changing the extracted runtime can make its next integrity check fail. See [troubleshooting](docs/TROUBLESHOOTING.md) for recovery.
 

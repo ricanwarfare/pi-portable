@@ -2,6 +2,17 @@
 
 Wrapper versions are independent of upstream Pi versions.
 
+## 0.3.0 — 2026-10-15
+
+- Added a single distributable Linux x64 executable embedding official Pi 1.3.0, ripgrep, and fd.
+- Native Go launcher with portable config/sessions/temp files, first-run hidden key setup, saved-key reuse, and Bash defaults.
+- Linux archive/runtime integrity checks, symlink rejection, extraction locking, and owner-only key/file permissions where supported.
+- Native process replacement preserves arguments, terminal input, signals, and child exit codes.
+- Added Go unit tests, Linux pseudo-terminal integration tests, and actual Bash/search smoke tests on Ubuntu 22.04 and 24.04.
+- Releases now publish both Windows and Linux executables with checksums/manifests. Existing Windows behavior is unchanged.
+
+Linux requires compatible glibc, Bash, and executable filesystems. ARM64 and Alpine/musl are not supported by this artifact. Saved keys remain plaintext.
+
 ## 0.2.1 — 2026-10-15
 
 - Embedded an original Pi shield icon in the Windows executable, with seven sizes from 16 to 256 pixels.

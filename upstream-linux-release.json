@@ -1,0 +1,17 @@
+{
+  "version": "1.3.0",
+  "url": "https://github.com/earendil-works/pi/releases/download/v1.3.0/pi-linux-x64.tar.gz",
+  "sha256": "24f5be328b66d4da36876296989501974f43ab8434fbb57c35c523a3ea505ded",
+  "tools": [
+    {
+      "name": "rg",
+      "url": "https://github.com/BurntSushi/ripgrep/releases/download/15.2.0/ripgrep-15.2.0-x86_64-unknown-linux-musl.tar.gz",
+      "sha256": "33e15bcf1624b25cdd2a55813a47a2f95dbe126268203e76aa6a585d1e7b149c"
+    },
+    {
+      "name": "fd",
+      "url": "https://github.com/sharkdp/fd/releases/download/v10.5.0/fd-v10.5.0-x86_64-unknown-linux-musl.tar.gz",
+      "sha256": "761c72dc8e120d85b22292063be8a796e2eeb20eb3e4f38b8fa2343ccf3514a7"
+    }
+  ]
+}
