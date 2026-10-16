@@ -8,6 +8,7 @@
 # Portable state and credentials (including custom homes within the checkout)
 **/pi-portable-data/
 **/sessions/
+**/cases/
 **/runtime.lock
 **/auth.json
 **/auth.json.lock/

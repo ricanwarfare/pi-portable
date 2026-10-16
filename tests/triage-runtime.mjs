@@ -1,0 +1,28 @@
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import * as fs from 'node:fs';
+import path from 'node:path';
+import { openCase } from '../src/ir/triage.mjs';
+
+const root = path.resolve(import.meta.dirname, '..');
+const home = fs.mkdtempSync(path.join(root, '.build/offline-triage-'));
+const binary = path.join(root, 'dist', process.platform === 'win32' ? 'pi-portable.exe' : 'pi-portable-linux-x64');
+const result = spawnSync(binary, ['--portable-triage'], { env: { ...process.env, PI_PORTABLE_HOME: home, OLLAMA_API_KEY: '', HTTP_PROXY: 'http://127.0.0.1:1', HTTPS_PROXY: 'http://127.0.0.1:1' }, encoding: 'utf8', timeout: 240000 });
+assert.equal(result.status, 0, result.stdout + result.stderr);
+assert.match(result.stdout, /Collection complete:/);
+assert.ok(!result.stderr.includes('API key:'));
+const cases = fs.readdirSync(path.join(home, 'cases'));
+assert.equal(cases.length, 1);
+const { index, root: caseRoot } = openCase(path.join(home, 'cases', cases[0]));
+assert.equal(index.artifacts.length, 12);
+assert.equal(index.wrapperVersion, JSON.parse(fs.readFileSync(path.join(root, 'version.json'))).version);
+const audit = JSON.parse(fs.readFileSync(path.join(caseRoot, 'audit.json')));
+assert.equal(audit.length, 6);
+assert.equal(audit.find(r => r.collector === 'processes').status, 'ok');
+assert.ok(index.artifacts.find(a => a.path === 'evidence/processes.stdout.txt').bytes > 0);
+assert.ok(!fs.existsSync(path.join(home, 'agent/ollama-cloud.key')));
+assert.equal(fs.readdirSync(path.join(home, 'sessions')).length, 0);
+const failure = spawnSync(binary, ['--no-session', '--print', '/case missing-case-folder'], { env: { ...process.env, PI_PORTABLE_HOME: home, OLLAMA_API_KEY: '' }, encoding: 'utf8', timeout: 30000 });
+assert.equal(failure.status, 1, failure.stdout + failure.stderr);
+console.log('PASS: shipped executable loads bundled IR extension, collects six groups without credentials/model calls, exports verified case and command audit.');
+console.log(`Case: ${caseRoot}`);

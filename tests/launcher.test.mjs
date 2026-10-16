@@ -37,6 +37,8 @@ test('forwards Windows arguments, current directory, stdin and exit code', () =>
   assert.equal(result.env.PI_OFFLINE, '1');
   assert.equal(result.env.PI_TELEMETRY, '0');
   assert.ok(result.actualArgs.includes('--no-context-files'));
+  assert.ok(result.actualArgs.includes('--extension'));
+  assert.equal(result.env.PI_PORTABLE_VERSION, JSON.parse(readFileSync(join(root, 'version.json'), 'utf8')).version);
   assert.ok(result.actualArgs.includes('read,powershell,grep,find,ls'));
 });
 

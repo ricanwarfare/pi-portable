@@ -449,8 +449,8 @@ func writeKey(home, path, key string) error {
 	return os.Rename(file.Name(), path)
 }
 
-func environment(runtime, agent, home, cloudKey string) []string {
-	overrides := map[string]string{"PI_CODING_AGENT_DIR": agent, "PI_CODING_AGENT_SESSION_DIR": filepath.Join(home, "sessions"), "PI_PACKAGE_DIR": runtime, "PI_OFFLINE": "1", "PI_TELEMETRY": "0",
+func environment(runtime, agent, home, cloudKey, version string) []string {
+	overrides := map[string]string{"PI_CODING_AGENT_DIR": agent, "PI_CODING_AGENT_SESSION_DIR": filepath.Join(home, "sessions"), "PI_PACKAGE_DIR": runtime, "PI_OFFLINE": "1", "PI_TELEMETRY": "0", "PI_PORTABLE_VERSION": version,
 		"PATH": filepath.Join(runtime, "tools/rg") + ":" + filepath.Join(runtime, "tools/fd") + ":" + os.Getenv("PATH"), "TMPDIR": filepath.Join(home, "tmp"), "TMP": filepath.Join(home, "tmp"), "TEMP": filepath.Join(home, "tmp"), "BUN_TMPDIR": filepath.Join(home, "tmp")}
 	if cloudKey != "" {
 		overrides["OLLAMA_API_KEY"] = cloudKey
@@ -469,6 +469,18 @@ func environment(runtime, agent, home, cloudKey string) []string {
 }
 
 func run(args []string) error {
+	collectOnly := len(args) == 1 && args[0] == "--portable-triage"
+	for _, arg := range args {
+		if arg == "--" {
+			break
+		}
+		if arg == "--portable-triage" && !collectOnly {
+			return errors.New("use --portable-triage by itself; for labeled collection use /triage inside Pi")
+		}
+	}
+	if collectOnly {
+		args = []string{"--no-session", "--print", "/triage"}
+	}
 	var meta metadata
 	data, err := bundle.ReadFile("bundle/metadata.json")
 	if err != nil {
@@ -580,7 +592,7 @@ func run(args []string) error {
 		return err
 	}
 	cloudKey := strings.TrimSpace(os.Getenv("OLLAMA_API_KEY"))
-	if cloudKey == "" {
+	if !collectOnly && cloudKey == "" {
 		data, err := os.ReadFile(keyPath)
 		if err != nil && !os.IsNotExist(err) {
 			return err
@@ -588,7 +600,7 @@ func run(args []string) error {
 		cloudKey = strings.TrimSpace(string(data))
 	}
 	ask := setup
-	if !ask && cloudKey == "" {
+	if !collectOnly && !ask && cloudKey == "" {
 		ask, err = needsSetup(agent, forwarded)
 		if err != nil {
 			return err
@@ -610,6 +622,7 @@ func run(args []string) error {
 		fmt.Fprintln(os.Stderr, "Key saved. Starting Pi...")
 	}
 	defaults := []string{"--offline", "--no-approve", "--no-extensions", "--no-mcp", "--no-skills", "--no-prompt-templates", "--no-themes", "--no-context-files"}
+	defaults = append(defaults, "--extension", filepath.Join(runtime, "portable", "triage.mjs"))
 	if !hasTools {
 		defaults = append(defaults, "--tools", "read,bash,grep,find,ls")
 	}
@@ -618,7 +631,8 @@ func run(args []string) error {
 	}
 	child := filepath.Join(runtime, "pi")
 	childArgs := append([]string{child}, append(defaults, forwarded...)...)
-	if err := syscall.Exec(child, childArgs, environment(runtime, agent, home, cloudKey)); err != nil {
+	childEnv := environment(runtime, agent, home, cloudKey, meta.Version)
+	if err := syscall.Exec(child, childArgs, childEnv); err != nil {
 		return fmt.Errorf("cannot execute Pi (check Linux compatibility and noexec mount settings): %w", err)
 	}
 	return nil

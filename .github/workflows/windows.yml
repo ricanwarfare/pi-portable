@@ -37,6 +37,12 @@ jobs:
       - name: Launcher tests
         shell: pwsh
         run: node --test tests/launcher.test.mjs
+      - name: Case integrity and report tests
+        run: node --test tests/triage.test.mjs
+      - name: Offline triage from shipped executable
+        run: node tests/triage-runtime.mjs
+      - name: Evidence analysis and report workflow
+        run: node tests/triage-analysis-smoke.mjs
       - name: Actual runtime and tool smoke test
         shell: pwsh
         run: node tests/runtime-smoke.mjs
@@ -74,6 +80,12 @@ jobs:
           go vet ./...
       - name: Linux process and terminal tests
         run: python3 tests/linux-launcher.py
+      - name: Case integrity and report tests
+        run: node --test tests/triage.test.mjs
+      - name: Offline triage from shipped executable
+        run: node tests/triage-runtime.mjs
+      - name: Evidence analysis and report workflow
+        run: node tests/triage-analysis-smoke.mjs
       - name: Actual Linux runtime and tool smoke test
         run: node tests/runtime-smoke.mjs
       - name: Upload tested Linux release files

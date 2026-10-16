@@ -48,6 +48,10 @@ if ($official) {
                 }
             } finally { $source.Dispose() }
         }
+        $irEntry = $archive.CreateEntry('portable/triage.mjs')
+        $irSource = [IO.File]::OpenRead((Join-Path $root 'src/ir/triage.mjs'))
+        $irOutput = $irEntry.Open()
+        try { $irSource.CopyTo($irOutput) } finally { $irSource.Dispose(); $irOutput.Dispose() }
     } finally { $archive.Dispose() }
     $PayloadZip = $combined
     $ExpectedSha256 = (Get-FileHash -LiteralPath $PayloadZip -Algorithm SHA256).Hash

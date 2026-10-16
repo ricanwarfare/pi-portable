@@ -141,7 +141,15 @@ internal static class Program
                         using (var source = entry.Open())
                         using (var target = new FileStream(path, FileMode.CreateNew, FileAccess.Write)) source.CopyTo(target);
                     }
-                    Directory.Move(stage, runtime);
+                    // Antivirus/indexers can briefly hold a newly extracted directory open.
+                    for (var attempt = 0; ; attempt++)
+                    {
+                        CheckPath(stage);
+                        CheckPath(runtime);
+                        try { Directory.Move(stage, runtime); break; }
+                        catch (UnauthorizedAccessException) { if (attempt >= 20) throw; Thread.Sleep(100); }
+                        catch (IOException) { if (attempt >= 20 || Directory.Exists(runtime)) throw; Thread.Sleep(100); }
+                    }
                 }
             }
         }
@@ -170,6 +178,9 @@ internal static class Program
     {
         try
         {
+            var collectOnly = args.Length == 1 && args[0] == "--portable-triage";
+            if (Array.IndexOf(args, "--") < 0 && Array.IndexOf(args, "--portable-triage") >= 0 && !collectOnly) throw new IOException("Use --portable-triage by itself. For labeled collection use /triage inside Pi.");
+            if (collectOnly) args = new[] { "--no-session", "--print", "/triage" };
             var home = Environment.GetEnvironmentVariable("PI_PORTABLE_HOME");
             if (String.IsNullOrWhiteSpace(home)) home = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "pi-portable-data");
             home = Path.GetFullPath(home);
@@ -219,8 +230,8 @@ internal static class Program
             var keyPath = Path.Combine(agent, "ollama-cloud.key");
             CheckPath(keyPath);
             var cloudKey = Environment.GetEnvironmentVariable("OLLAMA_API_KEY");
-            if (String.IsNullOrWhiteSpace(cloudKey) && File.Exists(keyPath)) cloudKey = File.ReadAllText(keyPath).Trim();
-            if (setup || (String.IsNullOrWhiteSpace(cloudKey) && NeedsOllamaSetup(agent, forwarded)))
+            if (!collectOnly && String.IsNullOrWhiteSpace(cloudKey) && File.Exists(keyPath)) cloudKey = File.ReadAllText(keyPath).Trim();
+            if (!collectOnly && (setup || (String.IsNullOrWhiteSpace(cloudKey) && NeedsOllamaSetup(agent, forwarded))))
             {
                 if (Console.IsInputRedirected || Console.IsOutputRedirected || Console.IsErrorRedirected)
                     throw new IOException("API key setup requires an interactive console. Run pi-portable.exe --portable-setup in a terminal, or set OLLAMA_API_KEY.");
@@ -251,6 +262,7 @@ internal static class Program
                 Console.Error.WriteLine("Key saved. Starting Pi...");
             }
             var defaults = new List<string> { "--offline", "--no-approve", "--no-extensions", "--no-mcp", "--no-skills", "--no-prompt-templates", "--no-themes", "--no-context-files" };
+            defaults.AddRange(new[] { "--extension", Path.Combine(runtime, "portable", "triage.mjs") });
             if (!hasTools) defaults.AddRange(new[] { "--tools", "read,powershell,grep,find,ls" });
             // Upstream dispatches subcommands by args[0]; flags must not precede them.
             if (forwarded.Count > 0 && Array.IndexOf(new[] { "auth", "install", "remove", "uninstall", "update", "list", "config", "mcp" }, forwarded[0]) >= 0) defaults.Clear();
@@ -265,6 +277,7 @@ internal static class Program
             start.EnvironmentVariables["PI_PACKAGE_DIR"] = runtime;
             start.EnvironmentVariables["PI_OFFLINE"] = "1";
             start.EnvironmentVariables["PI_TELEMETRY"] = "0";
+            start.EnvironmentVariables["PI_PORTABLE_VERSION"] = BuildInfo.Version;
             if (!String.IsNullOrWhiteSpace(cloudKey)) start.EnvironmentVariables["OLLAMA_API_KEY"] = cloudKey;
             start.EnvironmentVariables["PATH"] = Path.Combine(runtime, "tools", "rg") + ";" + Path.Combine(runtime, "tools", "fd") + ";" + Environment.GetEnvironmentVariable("PATH");
             start.EnvironmentVariables["TEMP"] = temp;

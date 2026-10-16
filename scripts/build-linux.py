@@ -68,6 +68,7 @@ def prepare():
             raise ValueError(f"Missing executable: {name}")
         files[name] = (files[name][0], 0o755)
     files["licenses/GO-LICENSE.txt"] = ((ROOT / "assets/licenses/GO-LICENSE.txt").read_bytes(), 0o644)
+    files["portable/triage.mjs"] = ((ROOT / "src/ir/triage.mjs").read_bytes(), 0o644)
     bundle = ROOT / "src/linux/bundle"
     bundle.mkdir(parents=True, exist_ok=True)
     output = io.BytesIO()

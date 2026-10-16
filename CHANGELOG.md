@@ -2,6 +2,16 @@
 
 Wrapper versions are independent of upstream Pi versions.
 
+## 0.4.0 — 2026-10-15
+
+- Bundled IR commands: /triage, /host, /processes, /network, /persistence, /logons, and /timeline. Fixed collectors run with time/output limits and record failures and partial output.
+- Added --portable-triage for collection without an API key or model request. New case folders contain host/operator/version metadata, raw evidence, collector audit records, a collection report, and SHA-256 manifests.
+- Added /case to verify and open transferred cases, /analyze for explicit model analysis with inspection tools, and /report for Markdown/JSON exports with validated artifact hashes and citation line ranges.
+- Collection and model analysis are separate. Reports distinguish observations, hypotheses, confidence, unanswered questions, and recommended next steps.
+- Windows extraction briefly retries a blocked final directory rename to tolerate transient antivirus/indexer locks without discarding staged files.
+
+Live collection leaves a footprint and has limited coverage. Hashes detect changes relative to the manifest, not authenticity on a compromised host. AI findings require analyst review. Dedicated web search is not included in this milestone.
+
 ## 0.3.0 — 2026-10-15
 
 - Added a single distributable Linux x64 executable embedding official Pi 1.3.0, ripgrep, and fd.

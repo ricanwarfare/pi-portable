@@ -21,6 +21,7 @@ This repository maintains the portable launchers, provider presets, tests, and r
 - **PowerShell for Windows investigations.** Inspect the host using its native shell alongside Pi's file-reading and search tools.
 - **Bash on Linux.** A native Linux x64 launcher provides the same portable storage and Ollama setup, with Bash as the shell tool.
 - **Search utilities included.** Bundled ripgrep and fd work without target-side downloads.
+- **IR case workflow.** Collect bounded snapshots without a model call, transfer verified evidence, and export reports with checked source citations.
 - **Portable case data.** Configuration, sessions, and child-process temporary files default to a folder beside the executable, or a location you choose.
 - **Ollama Cloud preconfigured.** DeepSeek 4.1 Flash is selected by default; supply your own API key.
 - **Less automatic loading from the host.** Normal agent launches disable workspace instruction/extension discovery, project approval, MCP, startup downloads, and telemetry.
@@ -156,6 +157,32 @@ An explicit `--tools` list replaces the portable default. Pi also accepts `--no-
 
 On Linux, use `--tools read,bash,edit,write,grep,find,ls` to enable the equivalent shell and editing tools.
 
+## Incident response workflow
+
+Collect locally without an API key or model request:
+
+```powershell
+.\pi-portable.exe --portable-triage
+```
+
+```bash
+./pi-portable-linux-x64 --portable-triage
+```
+
+The command prints a new case folder under `pi-portable-data/cases/`, with host/operator metadata, six groups of raw evidence, exact collector commands and UTC timestamps, a collection report, and SHA-256 manifests. Collectors have time/output limits and record permission failures and truncation.
+
+Copy the whole case folder to your workstation, start Pi in a fresh session, and use:
+
+```text
+/case <path-to-case-folder>
+/analyze
+/report
+```
+
+`/analyze` asks before sending case material to the selected provider and selects inspection tools. `/report` exports Markdown/JSON findings with observations, hypotheses, confidence, unanswered questions, and evidence citations. Export checks artifact hashes and source line ranges; it does not verify the model's interpretation. Analyst review is required.
+
+Inside Pi, `/triage [label]` collects all groups. `/host`, `/processes`, `/network`, `/persistence`, `/logons`, and `/timeline` collect individual groups into new cases. See the [IR workflow and collection limits](docs/INCIDENT_RESPONSE.md) for details. Live collection leaves a footprint and is not a forensic image or a guarantee that a host is clean. Dedicated web search is not included in this release.
+
 ## How it works
 
 ```text
@@ -182,6 +209,7 @@ response-drive/
     ├── runtime/<payload-sha256>/  Platform-specific distribution and licenses
     ├── agent/                    settings.json, models.json, saved key, Pi auth/state
     ├── sessions/                 Conversations grouped by working directory
+    ├── cases/<case-id>/           Evidence, collector audit, manifests, reports
     ├── tmp/                      Child-process temporary files
     └── runtime.lock              Extraction/configuration lock
 ```
@@ -226,7 +254,7 @@ For a local/private endpoint, add it to the portable `agent/models.json` followi
 | Upstream Pi | 1.3.0 |
 | Search tools | ripgrep 15.2.0, fd 10.5.0 |
 | Default connection | Ollama Cloud / DeepSeek 4.1 Flash |
-| Wrapper | 0.3.0 — Linux x64 support |
+| Wrapper | 0.4.0 — IR collection, cases, and evidence-cited reports |
 
 Automated tests cover both launchers and actual tools using a local fake model, including default model selection and saved-key Bearer authentication. Linux tests also exercise a real pseudo-terminal for hidden input, replacement, and cancellation. No real provider account is used. Live Ollama account access and broader interactive TUI behavior still need validation. ARM64, macOS, and older operating systems are not validated targets.
 
@@ -239,6 +267,9 @@ git clone https://github.com/ricanwarfare/pi-portable.git
 Set-Location pi-portable
 pwsh -NoProfile -File .\scripts\build.ps1
 node --test .\tests\launcher.test.mjs
+node --test .\tests\triage.test.mjs
+node .\tests\triage-runtime.mjs
+node .\tests\triage-analysis-smoke.mjs
 node .\tests\runtime-smoke.mjs
 ```
 
@@ -251,6 +282,9 @@ python3 scripts/build-linux.py
 cd src/linux && go test -v ./... && go vet ./...
 cd ../..
 python3 tests/linux-launcher.py
+node --test tests/triage.test.mjs
+node tests/triage-runtime.mjs
+node tests/triage-analysis-smoke.mjs
 node tests/runtime-smoke.mjs
 ```
 

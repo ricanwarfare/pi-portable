@@ -14,6 +14,9 @@ The build consumes official archives; it needs no Pi checkout or npm dependencie
 ```powershell
 pwsh -NoProfile -File .\scripts\build.ps1
 node --test .\tests\launcher.test.mjs
+node --test .\tests\triage.test.mjs
+node .\tests\triage-runtime.mjs
+node .\tests\triage-analysis-smoke.mjs
 node .\tests\runtime-smoke.mjs
 ```
 
@@ -38,6 +41,9 @@ go test -v ./...
 go vet ./...
 cd ../..
 python3 tests/linux-launcher.py
+node --test tests/triage.test.mjs
+node tests/triage-runtime.mjs
+node tests/triage-analysis-smoke.mjs
 node tests/runtime-smoke.mjs
 ```
 
