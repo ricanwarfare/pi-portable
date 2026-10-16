@@ -29,6 +29,11 @@ jobs:
       - name: Build pinned Windows distribution
         shell: pwsh
         run: ./scripts/build.ps1
+      - name: Validate changelog release notes
+        shell: pwsh
+        run: |
+          $version = (Get-Content version.json -Raw | ConvertFrom-Json).version
+          ./scripts/release-notes.ps1 -Tag "v$version"
       - name: Launcher tests
         shell: pwsh
         run: node --test tests/launcher.test.mjs
@@ -104,7 +109,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          $notes = "docs/releases/$env:RELEASE_TAG.md"
-          if (-not (Test-Path -LiteralPath $notes)) { throw "Missing release notes: $notes" }
+          ./scripts/release-notes.ps1 -Tag $env:RELEASE_TAG
+          $notes = '.build/release-notes.md'
           gh release create $env:RELEASE_TAG dist/pi-portable.exe dist/pi-portable.exe.sha256 dist/pi-portable.exe.build.json dist/pi-portable-linux-x64 dist/pi-portable-linux-x64.sha256 dist/pi-portable-linux-x64.build.json --verify-tag --title "Pi Portable $env:RELEASE_TAG" --notes-file $notes
           if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }

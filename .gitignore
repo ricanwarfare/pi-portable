@@ -1,12 +1,58 @@
-.build/
-dist/
-upstream/
-pi-portable-data/
+# Generated distributions, embedded assets, and local reference checkout
+/.build/
+/dist/
+/upstream/
+/src/linux/bundle/
+/src/linux/linux
+
+# Portable state and credentials (including custom homes within the checkout)
+**/pi-portable-data/
+**/sessions/
+**/runtime.lock
+**/auth.json
+**/auth.json.lock/
+**/ollama-cloud.key*
 .env
 .env.*
-**/auth.json
-**/ollama-cloud.key*
+!.env.example
+*.key
+*.pem
 *.pfx
 *.p12
-src/linux/bundle/
+
+# Dependency and test caches
+**/node_modules/
 **/__pycache__/
+*.py[cod]
+.pytest_cache/
+.cache/
+.coverage
+htmlcov/
+
+# Compiled outputs and downloaded archives; executables belong in GitHub Releases
+*.exe
+*.dll
+*.so
+*.so.*
+*.dylib
+*.pdb
+*.obj
+*.o
+*.a
+*.test
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.log
+
+# Local editor and operating-system files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
