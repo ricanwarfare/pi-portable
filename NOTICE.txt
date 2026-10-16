@@ -1,4 +1,4 @@
-Pi Portable embeds the official Pi Windows x64 release, version 1.3.0.
+Pi Portable embeds an official Pi release; see the platform build manifest for its exact version.
 Upstream: https://github.com/earendil-works/pi
 The runtime archive and its included dependencies retain their original licenses.
 

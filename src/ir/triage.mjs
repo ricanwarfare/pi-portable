@@ -115,7 +115,7 @@ export async function collectCase(home, label = '', selected = groups, runner = 
   const root = safePath(path.join(parent, id));
   fs.mkdirSync(root, { mode: 0o700 });
   fs.mkdirSync(path.join(root, 'evidence'), { mode: 0o700 });
-  const index = { schemaVersion: 1, id, label, startedUtc: now(), hostname: os.hostname(), operator: os.userInfo().username, platform: process.platform, osRelease: os.release(), wrapperVersion: process.env.PI_PORTABLE_VERSION || 'development', upstreamVersion: '1.3.0', collectorVersion: 1, artifacts: [], supportingFiles: {} };
+  const index = { schemaVersion: 1, id, label, startedUtc: now(), hostname: os.hostname(), operator: os.userInfo().username, platform: process.platform, osRelease: os.release(), wrapperVersion: process.env.PI_PORTABLE_VERSION || 'development', upstreamVersion: process.env.PI_PORTABLE_UPSTREAM_VERSION || 'unknown', collectorVersion: 1, artifacts: [], supportingFiles: {} };
   const audit = [];
   const specs = collectors();
   for (const name of selected) {

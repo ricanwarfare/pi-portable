@@ -29,9 +29,10 @@ type payloadFile struct {
 	Mode   uint32
 }
 type metadata struct {
-	Version       string
-	PayloadSHA256 string
-	Files         []payloadFile
+	Version         string
+	UpstreamVersion string
+	PayloadSHA256   string
+	Files           []payloadFile
 }
 
 func checkPath(path string) error {
@@ -449,8 +450,8 @@ func writeKey(home, path, key string) error {
 	return os.Rename(file.Name(), path)
 }
 
-func environment(runtime, agent, home, cloudKey, version string) []string {
-	overrides := map[string]string{"PI_CODING_AGENT_DIR": agent, "PI_CODING_AGENT_SESSION_DIR": filepath.Join(home, "sessions"), "PI_PACKAGE_DIR": runtime, "PI_OFFLINE": "1", "PI_TELEMETRY": "0", "PI_PORTABLE_VERSION": version,
+func environment(runtime, agent, home, cloudKey, version, upstreamVersion string) []string {
+	overrides := map[string]string{"PI_CODING_AGENT_DIR": agent, "PI_CODING_AGENT_SESSION_DIR": filepath.Join(home, "sessions"), "PI_PACKAGE_DIR": runtime, "PI_OFFLINE": "1", "PI_TELEMETRY": "0", "PI_PORTABLE_VERSION": version, "PI_PORTABLE_UPSTREAM_VERSION": upstreamVersion,
 		"PATH": filepath.Join(runtime, "tools/rg") + ":" + filepath.Join(runtime, "tools/fd") + ":" + os.Getenv("PATH"), "TMPDIR": filepath.Join(home, "tmp"), "TMP": filepath.Join(home, "tmp"), "TEMP": filepath.Join(home, "tmp"), "BUN_TMPDIR": filepath.Join(home, "tmp")}
 	if cloudKey != "" {
 		overrides["OLLAMA_API_KEY"] = cloudKey
@@ -632,7 +633,7 @@ func run(args []string) error {
 	}
 	child := filepath.Join(runtime, "pi")
 	childArgs := append([]string{child}, append(defaults, forwarded...)...)
-	childEnv := environment(runtime, agent, home, cloudKey, meta.Version)
+	childEnv := environment(runtime, agent, home, cloudKey, meta.Version, meta.UpstreamVersion)
 	if err := syscall.Exec(child, childArgs, childEnv); err != nil {
 		return fmt.Errorf("cannot execute Pi (check Linux compatibility and noexec mount settings): %w", err)
 	}

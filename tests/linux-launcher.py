@@ -67,7 +67,8 @@ def main():
     assert info.returncode == 0 and b"Linux x64" in info.stdout
     assert not (folder / "pi-portable-data").exists()
     result = subprocess.run([str(copied), "--version"], env=env, capture_output=True, timeout=40)
-    assert result.returncode == 0 and b"1.3.0" in result.stdout, result.stderr
+    expected_version = json.loads((ROOT / 'upstream-linux-release.json').read_text())['version'].encode()
+    assert result.returncode == 0 and expected_version in result.stdout, result.stderr
     home = folder / "pi-portable-data"
     assert (home / "agent/models.json").is_file()
     assert json.loads((home / "agent/settings.json").read_text())["defaultProvider"] == "ollama-cloud"

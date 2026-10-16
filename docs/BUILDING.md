@@ -59,6 +59,31 @@ Linux integration tests use a real pseudo-terminal to check setup, hidden input,
 
 ## Update dependencies
 
+### Automated Pi update proposals
+
+[Check upstream Pi updates](../.github/workflows/upstream-update.yml) runs daily at **13:17 UTC** (08:17 Chicago during daylight time, 07:17 during standard time). It can also be run from the repository's Actions tab. GitHub schedules may be delayed and can be disabled after repository inactivity; check Actions if a run is missing.
+
+The workflow checks the latest published stable Pi release and requires both x64 platform archives, GitHub SHA-256 asset digests, and the publisher's `SHA256SUMS`. It downloads and verifies the files before proposing new pins. Pre-releases, downgrades, missing assets/checksums, and same-version asset hash changes are not silently accepted.
+
+It creates a **draft** PR on `codex/update-pi-<version>`, preserving ripgrep/fd pins, provider presets, IR tools, and pi-web-search. Version upgrades also refresh the README/third-party version tables and add an Unreleased changelog entry. The wrapper version is not bumped automatically. The first run may create a provenance-only PR for the current Pi version, adding release identity/timestamp metadata to the two pin files; that exercises the real PR/CI path without upgrading the runtime.
+
+Existing open PRs and human edits are preserved. A closed/merged PR for the same version is not recreated. Reopen a rejected PR manually if you want to reconsider it, and use Actions to rerun failed validation. An orphaned update branch without a PR causes an error rather than a forced overwrite; inspect it and create the PR or remove that specific branch manually.
+
+The updater explicitly dispatches the existing Windows/Linux workflow on the proposed commit's branch. This is necessary because events from `GITHUB_TOKEN` do not behave like human pushes, and bot-created PR runs may require approval. Explicit workflow dispatch works with the built-in token, so no personal token is required. See [GitHub's workflow-triggering rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow). The updater job alone has contents/PR/Actions write permissions; build jobs use read permissions. Enable **Allow GitHub Actions to create and approve pull requests** in repository Actions settings for PR creation; the script never submits approvals or merges.
+
+Review upstream release notes and all platform checks before merging. Prepare a wrapper version bump and release notes when publishing updated binaries. **No merge, tag, or binary release is automated by the updater.** pi-web-search and other dependencies are maintained separately.
+
+Read-only local check (GitHub CLI authentication and network access required):
+
+```bash
+python scripts/update-upstream.py
+python tests/test_upstream_update.py
+```
+
+The first command reports proposed changes and verifies downloads without modifying tracked files. `--publish` is intended for the workflow's clean default-branch checkout; it creates a branch/PR and dispatches CI.
+
+### Other dependency maintenance
+
 The unmodified pi-web-search package sources are tracked under `vendor/pi-web-search/`. Both builds check every packaged file against `web-search-release.json` before embedding it alongside the original README and package metadata. The adapter lives in `src/web/`. No npm installation or package lifecycle script is used. File bytes are preserved through Git checkout with a scoped `.gitattributes` rule. Release manifests include the package version, archive integrity, and source-file pins.
 
 To update this package, review the exact npm release and source, verify the downloaded archive against npm's SHA-512 integrity, record its SHA-256, replace the complete vendored package, and regenerate the per-file SHA-256 table. Keep the publisher's bytes unchanged and review any license or peer dependency changes. Run the web unit/runtime tests and both platform CI jobs. The runtime tests use fake Ollama model/search/fetch endpoints, not a paid account; they cover disclosure denial, existing-key authentication, source URLs, HTTP 429, cancellation, and IR isolation.

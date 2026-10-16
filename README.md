@@ -317,6 +317,8 @@ Linux builds use Go 1.27.2 and Python 3; tests also need Node.js 22+. Neither pl
 
 See [building and release instructions](docs/BUILDING.md), [contributing](CONTRIBUTING.md), and the [changelog](CHANGELOG.md). The [Windows and Linux workflow](.github/workflows/windows.yml) builds and tests both platforms before publication.
 
+The [upstream update check](.github/workflows/upstream-update.yml) runs daily and proposes verified Pi release pins in a draft PR, then explicitly starts Windows/Linux validation. Existing customizations and other dependency pins are preserved. Merging and publishing remain manual; see [update automation](docs/BUILDING.md#automated-pi-update-proposals).
+
 Update by downloading a new release and retaining your data folder. **Do not use `pi update self` to update the wrapper**: changing the extracted runtime can make its next integrity check fail. See [troubleshooting](docs/TROUBLESHOOTING.md) for recovery.
 
 Upstream Pi updates are currently reviewed and applied through the pinned Windows and Linux manifests, followed by builds and tests. Deployed copies do not automatically replace their runtime.

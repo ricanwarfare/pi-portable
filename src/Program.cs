@@ -279,6 +279,7 @@ internal static class Program
             start.EnvironmentVariables["PI_OFFLINE"] = "1";
             start.EnvironmentVariables["PI_TELEMETRY"] = "0";
             start.EnvironmentVariables["PI_PORTABLE_VERSION"] = BuildInfo.Version;
+            start.EnvironmentVariables["PI_PORTABLE_UPSTREAM_VERSION"] = BuildInfo.UpstreamVersion;
             if (!String.IsNullOrWhiteSpace(cloudKey)) start.EnvironmentVariables["OLLAMA_API_KEY"] = cloudKey;
             start.EnvironmentVariables["PATH"] = Path.Combine(runtime, "tools", "rg") + ";" + Path.Combine(runtime, "tools", "fd") + ";" + Environment.GetEnvironmentVariable("PATH");
             start.EnvironmentVariables["TEMP"] = temp;

@@ -16,6 +16,7 @@ assert.equal(cases.length, 1);
 const { index, root: caseRoot } = openCase(path.join(home, 'cases', cases[0]));
 assert.equal(index.artifacts.length, 12);
 assert.equal(index.wrapperVersion, JSON.parse(fs.readFileSync(path.join(root, 'version.json'))).version);
+assert.equal(index.upstreamVersion, JSON.parse(fs.readFileSync(path.join(root, process.platform === 'win32' ? 'upstream-release.json' : 'upstream-linux-release.json'))).version);
 const audit = JSON.parse(fs.readFileSync(path.join(caseRoot, 'audit.json')));
 assert.equal(audit.length, 6);
 assert.equal(audit.find(r => r.collector === 'processes').status, 'ok');

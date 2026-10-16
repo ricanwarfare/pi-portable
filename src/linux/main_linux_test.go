@@ -143,9 +143,10 @@ func TestEnvironmentAndLock(t *testing.T) {
 	t.Setenv("PI_CODING_AGENT_DIR", "host-settings")
 	t.Setenv("OLLAMA_API_KEY", "")
 	t.Setenv("PI_PORTABLE_VERSION", "host-version")
-	values := environment("/runtime", "/case/agent", "/case", "synthetic", "0.4.0")
+	t.Setenv("PI_PORTABLE_UPSTREAM_VERSION", "host-upstream")
+	values := environment("/runtime", "/case/agent", "/case", "synthetic", "0.4.0", "9.8.7")
 	joined := strings.Join(values, "\n")
-	if !strings.Contains(joined, "PI_CODING_AGENT_DIR=/case/agent") || strings.Contains(joined, "host-settings") || strings.Contains(joined, "host-version") || !strings.Contains(joined, "PI_PORTABLE_VERSION=0.4.0") || !strings.Contains(joined, "OLLAMA_API_KEY=synthetic") {
+	if !strings.Contains(joined, "PI_CODING_AGENT_DIR=/case/agent") || strings.Contains(joined, "host-settings") || strings.Contains(joined, "host-version") || strings.Contains(joined, "host-upstream") || !strings.Contains(joined, "PI_PORTABLE_UPSTREAM_VERSION=9.8.7") || !strings.Contains(joined, "PI_PORTABLE_VERSION=0.4.0") || !strings.Contains(joined, "OLLAMA_API_KEY=synthetic") {
 		t.Fatal("portable environment not applied")
 	}
 }

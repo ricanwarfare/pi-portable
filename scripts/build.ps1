@@ -9,6 +9,7 @@ $root = Split-Path $PSScriptRoot -Parent
 $buildDir = Join-Path $root '.build'
 New-Item -ItemType Directory -Force $buildDir | Out-Null
 $release = Get-Content (Join-Path $root 'upstream-release.json') -Raw | ConvertFrom-Json
+if ($release.version -notmatch '^\d+\.\d+\.\d+$') { throw 'Upstream version must be major.minor.patch.' }
 $version = (Get-Content (Join-Path $root 'version.json') -Raw | ConvertFrom-Json).version
 if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'version.json must contain a major.minor.patch version.' }
 $official = -not $PayloadZip
@@ -83,7 +84,7 @@ $metadata = @(
     ('[assembly: System.Reflection.AssemblyFileVersion("' + $version + '.0")]'),
     '[assembly: System.Reflection.AssemblyProduct("Pi Portable")]',
     '[assembly: System.Reflection.AssemblyDescription("Portable Pi coding agent for Incident Response")]',
-    ('internal static class BuildInfo { internal const string Version = "' + $version + '"; internal const string PayloadHash = "' + $ExpectedSha256.ToLowerInvariant() + '"; }')
+    ('internal static class BuildInfo { internal const string Version = "' + $version + '"; internal const string UpstreamVersion = "' + $release.version + '"; internal const string PayloadHash = "' + $ExpectedSha256.ToLowerInvariant() + '"; }')
 )
 [IO.File]::WriteAllLines($buildInfo, $metadata)
 & $compiler /nologo /optimize+ /target:exe /platform:x64 "/out:$OutputPath" "/win32icon:$root/assets/pi-portable.ico" /reference:System.IO.Compression.dll /reference:System.IO.Compression.FileSystem.dll /reference:System.Web.Extensions.dll "/resource:$PayloadZip,payload.zip" "/resource:$root/NOTICE.txt,NOTICE.txt" "/resource:$root/config/models.json,defaults.models.json" "/resource:$root/config/settings.json,defaults.settings.json" (Join-Path $root 'src/Program.cs') $buildInfo

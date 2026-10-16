@@ -2,6 +2,11 @@
 
 Wrapper versions are independent of upstream Pi versions.
 
+## Unreleased
+
+- Added a daily stable-Pi update workflow with archive/checksum verification, idempotent draft PR creation, and explicit Windows/Linux CI dispatch. Merging, tagging, and publishing remain manual.
+- Case metadata and version checks now derive the upstream version from build pins rather than a hard-coded value.
+
 ## 0.5.0 — 2026-10-15
 
 - Bundled checksum-pinned pi-web-search 1.7.0 in both executables. No npm or extra installation is needed on target systems; Ollama Cloud search/fetch reuses the existing saved API key.

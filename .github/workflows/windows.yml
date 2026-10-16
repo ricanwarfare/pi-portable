@@ -11,6 +11,12 @@ permissions:
   contents: read
 
 jobs:
+  updater-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: python3 tests/test_upstream_update.py
+
   build:
     runs-on: windows-2022
     steps:

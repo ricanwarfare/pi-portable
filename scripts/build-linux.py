@@ -91,6 +91,7 @@ def prepare():
     (bundle / "payload.tar.gz").write_bytes(payload)
     metadata = {
         "version": version,
+        "upstreamVersion": release['version'],
         "payloadSha256": digest(payload),
         "files": [{"path": name, "sha256": digest(data), "mode": mode}
                   for name, (data, mode) in sorted(files.items())],
