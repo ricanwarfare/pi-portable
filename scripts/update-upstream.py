@@ -145,8 +145,20 @@ def publish(root, repo, release):
             return opened['url']
         print('An update PR for this version was already closed/merged; no duplicate:', prs[0]['url'])
         return None
-    permissions = gh_json('api', f'repos/{repo}/actions/permissions/workflow')
-    if not permissions.get('can_approve_pull_request_reviews'):
+    try:
+        permissions = gh_json('api', f'repos/{repo}/actions/permissions/workflow')
+    except subprocess.CalledProcessError as error:
+        # GITHUB_TOKEN can create PRs but cannot read this administration setting.
+        # Do not grant admin access just for a preflight; GitHub enforces creation itself.
+        try:
+            status = str(json.loads(error.output).get('status'))
+        except (ValueError, TypeError):
+            raise error
+        if status != '403':
+            raise
+        permissions = None
+        print('Admin settings are not readable by this token; GitHub will enforce PR-creation permission.')
+    if permissions is not None and not permissions.get('can_approve_pull_request_reviews'):
         print('PR creation is disabled in repository Actions settings; no branch was created. Enable the combined create/approve PR setting before publishing proposals.')
         return None
     if run('git', 'status', '--porcelain', cwd=root):

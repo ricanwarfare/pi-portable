@@ -5,6 +5,7 @@ import importlib.util
 import json
 from pathlib import Path
 import tempfile
+import subprocess
 import unittest
 from unittest.mock import patch
 
@@ -115,6 +116,13 @@ class UpdateTests(unittest.TestCase):
         with patch.object(updater, 'gh_json', side_effect=[[], {'can_approve_pull_request_reviews': False}]), patch.object(updater, 'run') as run:
             self.assertIsNone(updater.publish(self.root, 'example/repo', data))
             run.assert_not_called()
+
+    def test_limited_token_does_not_require_administration_permission(self):
+        data, _ = release()
+        denied = subprocess.CalledProcessError(1, ['gh', 'api'], output='{"status":"403"}')
+        with patch.object(updater, 'gh_json', side_effect=[[], denied]), patch.object(updater, 'run', return_value='dirty checkout'):
+            with self.assertRaisesRegex(ValueError, 'clean checkout'):
+                updater.publish(self.root, 'example/repo', data)
 
 
 if __name__ == '__main__':
