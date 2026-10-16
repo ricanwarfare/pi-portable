@@ -12,6 +12,6 @@ If private reporting is unavailable, open an issue requesting a private channel 
 
 ## Scope
 
-The latest 0.3.x release is the current maintenance target. Report launcher extraction, integrity, environment, credential setup, and packaging issues here. Pi vulnerabilities should also follow [upstream's security policy](https://github.com/earendil-works/pi/security/policy).
+The latest published Pi Response release is the current maintenance target. Older releases may lack fixes; reproduce against the latest release when possible. Report launcher extraction, integrity, environment, credential setup, and packaging issues here. Pi vulnerabilities should also follow [upstream's security policy](https://github.com/earendil-works/pi/security/policy).
 
 Checksums detect changes to expected files; they do not protect execution on a host controlled by a privileged attacker. Public binaries are currently unsigned.

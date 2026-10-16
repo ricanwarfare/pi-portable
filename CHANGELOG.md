@@ -4,6 +4,12 @@ Wrapper versions are independent of upstream Pi versions.
 
 ## Unreleased
 
+## 0.6.1 — 2026-10-16
+
+- Windows now rejects unexpected files and symlinks/junctions anywhere in an existing runtime directory, matching the Linux integrity policy. Custom tools must live outside the extracted runtime.
+- Release publication now requires updater tests as well as Windows and Linux checks.
+- Corrected stale README wrapper and security-policy maintenance versions, clarified upgrades and preserved configuration, and added a standing requirement to review the README with every change.
+
 ## 0.6.0 — 2026-10-16
 
 - Renamed Pi Portable to Pi Response, with pi-response.exe and pi-response-linux-x64 artifacts, updated branding, documentation, and repository links.

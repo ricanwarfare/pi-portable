@@ -100,10 +100,10 @@ Investigate checksum mismatches rather than bypassing validation.
 
 1. Update `version.json`, README compatibility, and changelog. Wrapper and Pi versions are independent.
 2. Add a `## <version>` section to `CHANGELOG.md` covering the changes and relevant limits. Release notes are generated from that section; per-release Markdown files are not required.
-3. Push the reviewed commit to `main` and wait for Windows and both Ubuntu jobs to pass.
+3. Push the reviewed commit to `main` and wait for updater tests, Windows, and both Ubuntu jobs to pass.
 4. Tag that commit `v<version>` and push the tag.
 
-Tag CI checks the version, builds and tests both platforms, then publishes both executables with checksums and manifests to GitHub Releases. Only the release job has repository-content write permission. Release files are tested build outputs, not a developer's data directory. Set the Linux executable bit after downloading with `chmod +x`.
+Tag CI checks the version and requires updater tests plus successful builds and tests on both platforms, then publishes both executables with checksums and manifests to GitHub Releases. Only the release job has repository-content write permission. Release files are tested build outputs, not a developer's data directory. Set the Linux executable bit after downloading with `chmod +x`.
 
 Review the published downloads and notes. Never publish credentials, caches, sessions, local reference checkouts, or evidence.
 

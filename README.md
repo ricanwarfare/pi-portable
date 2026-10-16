@@ -218,7 +218,7 @@ platform executable
        └─ model requests → Ollama Cloud
 ```
 
-Each executable contains Pi's runtime, assets, native helpers, ripgrep, and fd. Later launches verify the cached runtime against the embedded archive. Concurrent launches serialize extraction; changed or incomplete expected runtime files cause startup to stop.
+Each executable contains Pi's runtime, assets, native helpers, ripgrep, and fd. Later launches verify the cached runtime against the embedded archive. Concurrent launches serialize extraction; changed or incomplete expected runtime files, unexpected files, and runtime symlinks/junctions cause startup to stop. Keep custom files and tools outside the extracted runtime directory.
 
 Arguments, piped input, working directory, and Pi's exit code are preserved. Interactive, print, JSON, and RPC modes remain available. `--response-notices` prints the embedded upstream license notice.
 
@@ -277,7 +277,7 @@ For a local/private endpoint, add it to the portable `agent/models.json` followi
 | Upstream Pi | 1.3.0 |
 | Search tools | ripgrep 15.2.0, fd 10.5.0 |
 | Default connection | Ollama Cloud / DeepSeek 4.1 Flash |
-| Wrapper | 0.5.0 — bundled web search with explicit session opt-in |
+| Wrapper | 0.6.1 — Pi Response; stricter Windows runtime verification |
 
 Automated tests cover both launchers and actual tools using a local fake model, including default model selection and saved-key Bearer authentication. Linux tests also exercise a real pseudo-terminal for hidden input, replacement, and cancellation. No real provider account is used. Live Ollama account access and broader interactive TUI behavior still need validation. ARM64, macOS, and older operating systems are not validated targets.
 
@@ -321,7 +321,7 @@ See [building and release instructions](docs/BUILDING.md), [contributing](CONTRI
 
 The [upstream update check](.github/workflows/upstream-update.yml) runs daily and proposes verified Pi release pins in a draft PR, then explicitly starts Windows/Linux validation. Existing customizations and other dependency pins are preserved. Merging and publishing remain manual; see [update automation](docs/BUILDING.md#automated-pi-update-proposals).
 
-Update by downloading a new release and retaining your data folder. **Do not use `pi update self` to update the wrapper**: changing the extracted runtime can make its next integrity check fail. See [troubleshooting](docs/TROUBLESHOOTING.md) for recovery.
+Update by downloading a new release, verifying its checksum, and placing it beside your existing `pi-response-data` folder. Existing configuration is preserved; a new release does not overwrite your provider/model choices. The rename from Pi Portable starts fresh as described above. **Do not use `pi update self` to update the wrapper**: changing the extracted runtime can make its next integrity check fail. See [troubleshooting](docs/TROUBLESHOOTING.md) for recovery.
 
 Upstream Pi updates are currently reviewed and applied through the pinned Windows and Linux manifests, followed by builds and tests. Deployed copies do not automatically replace their runtime.
 

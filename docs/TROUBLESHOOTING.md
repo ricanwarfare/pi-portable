@@ -29,11 +29,13 @@ D:\Tools\pi-response.exe
 
 The EXE may be on read-only media, but extraction and sessions need a writable home. There is no silent fallback to a profile/system-temp folder. Managed paths cannot contain symlinks or junctions.
 
-## Runtime is incomplete or modified
+## Runtime is incomplete, modified, or contains unexpected files
 
 Close instances using the runtime. Locate its hash directory with `--response-info`, move that directory aside for inspection, and restart to extract a fresh copy. Retain `agent/` and `sessions/`.
 
-Possible causes include interrupted extraction, antivirus quarantine, manual edits, or `pi update self`. Do not disable security tools or checksum checks. Verify the published checksum and follow your organization's tooling approval process.
+Both platforms reject untracked runtime files and symlinks/junctions, including files in extra subdirectories. Keep custom scripts, tools, and evidence outside `runtime/`.
+
+Possible causes include interrupted extraction, antivirus quarantine, added files, manual edits, or `pi update self`. Do not disable security tools or checksum checks. Verify the published checksum and follow your organization's tooling approval process.
 
 ## Update the wrapper
 

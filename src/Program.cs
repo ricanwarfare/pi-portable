@@ -117,6 +117,26 @@ internal static class Program
                 // Validate all paths before extracting anything. Verify cached bytes on each run.
                 foreach (var entry in zip.Entries) EntryPath(runtime, entry.FullName);
                 var valid = Directory.Exists(runtime);
+                if (valid)
+                {
+                    var expected = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    foreach (var entry in zip.Entries)
+                        if (!String.IsNullOrEmpty(entry.Name)) expected.Add(EntryPath(runtime, entry.FullName));
+                    var directories = new Stack<string>();
+                    directories.Push(runtime);
+                    while (directories.Count > 0)
+                    {
+                        var directory = directories.Pop();
+                        CheckPath(directory);
+                        foreach (var item in Directory.EnumerateFileSystemEntries(directory))
+                        {
+                            CheckPath(item);
+                            if (Directory.Exists(item)) directories.Push(item);
+                            else if (!expected.Contains(Path.GetFullPath(item)))
+                                throw new IOException("Unexpected runtime file. Move this runtime directory aside and retry: " + item);
+                        }
+                    }
+                }
                 foreach (var entry in zip.Entries)
                 {
                     if (String.IsNullOrEmpty(entry.Name)) continue;

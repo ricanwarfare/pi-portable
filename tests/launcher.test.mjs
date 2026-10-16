@@ -99,6 +99,28 @@ test('modified cached runtime is rejected before execution', () => {
   assert.match(result.stderr, /modified/);
 });
 
+test('unexpected runtime files and junctions are rejected before execution', () => {
+  const home = join(scratch, 'unexpected runtime');
+  assert.equal(run([], { home }).status, 0);
+  const runtime = join(home, 'runtime', readdirSync(join(home, 'runtime'))[0]);
+  const extra = join(runtime, 'untracked', 'helper.dll');
+  mkdirSync(join(runtime, 'untracked'));
+  writeFileSync(extra, 'unexpected runtime content');
+  const result = run([], { home });
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /Unexpected runtime file/);
+  assert.deepEqual(result.actualArgs, []);
+
+  const linkedHome = join(scratch, 'runtime junction');
+  assert.equal(run([], { home: linkedHome }).status, 0);
+  const linkedRuntime = join(linkedHome, 'runtime', readdirSync(join(linkedHome, 'runtime'))[0]);
+  symlinkSync(runtime, join(linkedRuntime, 'untracked-link'), 'junction');
+  const linked = run([], { home: linkedHome });
+  assert.equal(linked.status, 1);
+  assert.match(linked.stderr, /symlinks or junctions/);
+  assert.deepEqual(linked.actualArgs, []);
+});
+
 test('archive traversal is rejected without writing outside runtime', () => {
   const home = join(scratch, 'traversal');
   const result = run([], { home, launcher: join(root, '.build/unsafe-launcher.exe') });
