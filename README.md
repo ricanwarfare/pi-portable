@@ -58,7 +58,7 @@ if ($actual -ne $expected) { throw 'Checksum mismatch' }
 
 The current EXE is **unsigned**; signing support is prepared but no signing account is configured. A matching SHA256 confirms the file matches the published checksum; it is not a code signature. See [Windows signing status and setup](docs/CODE_SIGNING.md).
 
-### 2. Enter your Ollama Cloud key once
+### 2. Enter your key and choose storage
 
 Create a key in [Ollama API key settings](https://ollama.com/settings/keys). **Double-click `pi-response.exe` in File Explorer**, or launch it from PowerShell:
 
