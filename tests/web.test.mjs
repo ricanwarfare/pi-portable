@@ -58,6 +58,15 @@ test('sessions, collection and analysis disable web without automatic restoratio
   assert.ok(!f.active().includes('web_search'));
 });
 
+test('failed analysis submission releases its web lock without enabling web', async () => {
+  const f = fixture();
+  f.bus.get('pi-response:case-analysis')();
+  f.bus.get('pi-response:case-analysis-end')();
+  assert.ok(!f.active().includes('web_search'));
+  await f.web('on');
+  assert.ok(f.active().includes('web_search'));
+});
+
 test('stale disclosure acceptance cannot enable web across an IR operation', async () => {
   const f = fixture();
   f.ctx.ui.confirm = async () => { f.bus.get('pi-response:collection-start')(); f.bus.get('pi-response:collection-end')(); return true; };

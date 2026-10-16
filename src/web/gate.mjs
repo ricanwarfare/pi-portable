@@ -72,4 +72,5 @@ export function configureWeb(pi, dependencies) {
   pi.events.on('pi-response:collection-start', () => { collecting = true; disable(); });
   pi.events.on('pi-response:collection-end', () => { collecting = false; });
   pi.events.on('pi-response:case-analysis', () => { analysis = true; disable(); });
+  pi.events.on('pi-response:case-analysis-end', () => { analysis = false; });
 }

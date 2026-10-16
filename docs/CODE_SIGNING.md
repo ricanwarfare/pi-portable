@@ -40,7 +40,7 @@ No long-lived Azure client secret or PFX is used. See the [official action](http
 - `azure` mode requires all platform tests, signing authentication, signing, publisher/timestamp verification, and a signed-launcher smoke test. Failure blocks publication; there is no unsigned fallback.
 - Unknown modes fail publication. Missing Azure configuration fails before authentication.
 - Only `dist/pi-response.exe` is submitted for signing. The job verifies its original checksum and source commit first.
-- The finalizer requires a valid embedded Authenticode signature, the configured publisher subject, a timestamp, and successful Windows SDK SignTool verification. It regenerates the checksum and records signature metadata in the build manifest.
+- The finalizer requires explicitly clean Boolean source-tree metadata for official releases, a valid embedded Authenticode signature, the configured publisher subject, a timestamp, and successful Windows SDK SignTool verification. It regenerates the checksum and records signature metadata in the build manifest.
 - Release notes state whether the final Windows executable is unsigned or verified signed. Normal build artifacts remain unsigned inputs; the release job selects the separate signed artifact when enabled.
 
 The enabled Azure path requires live end-to-end validation after provisioning. Automated tests currently cover unsigned finalization, tamper detection, and rejection of unsigned files or missing publisher configuration in signed mode. They do not claim to validate a live signing account.

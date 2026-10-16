@@ -14,6 +14,7 @@ The build consumes official archives; it needs no Pi checkout or npm dependencie
 ```powershell
 pwsh -NoProfile -File .\scripts\build.ps1
 node --test .\tests\launcher.test.mjs
+node --test .\tests\signing.test.mjs
 node --test .\tests\triage.test.mjs
 node --test .\tests\web.test.mjs
 node .\tests\web-runtime.mjs
@@ -22,7 +23,7 @@ node .\tests\triage-analysis-smoke.mjs
 node .\tests\runtime-smoke.mjs
 ```
 
-Output is `dist/pi-response.exe`, `dist/pi-response.exe.sha256`, and `dist/pi-response.exe.build.json`. The manifest records the wrapper version, source commit when available, dependency pins, and payload/executable hashes. It is provenance information, not a signature or exhaustive SBOM. Builds are not guaranteed to be bit-for-bit reproducible across machines.
+Output is `dist/pi-response.exe`, `dist/pi-response.exe.sha256`, and `dist/pi-response.exe.build.json`. The manifest records the wrapper version, source commit when available, `sourceDirty` (Boolean, or null outside Git), dependency pins, and payload/executable hashes. It is provenance information, not a signature or exhaustive SBOM. Builds are not guaranteed to be bit-for-bit reproducible across machines.
 
 The build validates archives against [upstream-release.json](../upstream-release.json), retains search-tool licenses, and embeds the distribution and configuration templates. Downloads are cached in `.build/` for subsequent offline builds. Use `-OutputPath` to choose another output. `-PayloadZip` and `-ExpectedSha256` are intended for test fixtures or deliberately supplied distributions; the archive must contain `pi.exe` at its root.
 
@@ -34,7 +35,7 @@ No provider keys are needed. Tests require permission to listen on localhost and
 
 ## Linux build and test
 
-Build with Go 1.27.2 and Python 3 on Linux, or cross-compile from Windows using the same tools. No third-party Go modules are needed. Python and Go are build tools only; they are not required on the target. CI pins Go 1.27.2; the build manifest records the compiler actually used.
+Build with Go 1.27.2 and Python 3.10+ on Linux, or cross-compile from Windows using the same tools. No third-party Go modules are needed. Python and Go are build tools only; they are not required on the target. CI pins Go 1.27.2; the build manifest records the compiler actually used.
 
 ```bash
 python3 scripts/build-linux.py
@@ -73,7 +74,7 @@ The updater explicitly dispatches the existing Windows/Linux workflow on the pro
 
 Review upstream release notes and all platform checks before merging. Prepare a wrapper version bump and release notes when publishing updated binaries. **No merge, tag, or binary release is automated by the updater.** pi-web-search and other dependencies are maintained separately.
 
-Read-only local check (GitHub CLI authentication and network access required):
+Read-only local check (Python 3.10+, GitHub CLI authentication, and network access required):
 
 ```bash
 python scripts/update-upstream.py
@@ -112,3 +113,5 @@ The tracked repository contains source, tests, configuration, build/release scri
 ## Windows code signing
 
 The optional signing job uses Azure Artifact Signing and OIDC only for tagged releases after all build/test jobs pass. It is disabled by default. See [CODE_SIGNING.md](CODE_SIGNING.md) for account setup, repository variables, publisher verification, and current limitations. Signing changes executable bytes, so final checksums and Windows manifest metadata are regenerated after signature verification. Linux files are unaffected.
+
+Windows release verification requires `sourceDirty` to be the Boolean `false` as well as the expected source commit. Local modified/untracked builds are labeled dirty, rather than implying they reproduce HEAD; source archives outside Git have null Git provenance. Official CI builds use clean checkouts.

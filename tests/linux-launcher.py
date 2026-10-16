@@ -86,6 +86,17 @@ def main():
         assert secret not in output, "Prompt echoed key"
         key = home / "agent/ollama-cloud.key"
         assert key.read_bytes() == secret and key.stat().st_mode & 0o777 == 0o600
+    # Help/version and explicit setup must not need to read the old key first.
+    if os.geteuid() != 0:
+        key.chmod(0)
+        try:
+            for args in (["--version"], ["--tools", "read", "--help"]):
+                result = run(args, home)
+                assert result.returncode == 0, result.stderr
+            result = run(["--response-setup"], home)
+            assert result.returncode == 1 and b"interactive terminal" in result.stderr, result.stderr
+        finally:
+            key.chmod(0o600)
     # Session-only is the default; explicit mode never prompts for storage or overwrites a saved key.
     transient = SCRATCH / "transient"
     code, output = terminal(["--response-setup", "--version"], transient, b"synthetic-session\r", b"\r")

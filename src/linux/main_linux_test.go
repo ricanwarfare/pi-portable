@@ -104,6 +104,23 @@ func TestHiddenInput(t *testing.T) {
 	}
 }
 
+func TestSavedKeyRequirement(t *testing.T) {
+	for _, test := range []struct {
+		args []string
+		want bool
+	}{
+		{nil, true},
+		{[]string{"--version"}, false},
+		{[]string{"--tools", "read", "--help"}, false},
+		{[]string{"--system-prompt", "--version"}, true},
+		{[]string{"--", "--help"}, true},
+	} {
+		if got := needsSavedKey(test.args); got != test.want {
+			t.Fatalf("needsSavedKey(%q) = %v, want %v", test.args, got, test.want)
+		}
+	}
+}
+
 func TestCredentialPermissionsAndReplacement(t *testing.T) {
 	home := t.TempDir()
 	path := filepath.Join(home, "ollama-cloud.key")

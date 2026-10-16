@@ -92,9 +92,13 @@ if ($LASTEXITCODE -ne 0) { throw 'C# compilation failed.' }
 $hash = (Get-FileHash -LiteralPath $OutputPath -Algorithm SHA256).Hash.ToLowerInvariant()
 [IO.File]::WriteAllText("$OutputPath.sha256", "$hash  $([IO.Path]::GetFileName($OutputPath))`n")
 $sourceCommit = $null
+$sourceDirty = $null
 if (Test-Path -LiteralPath (Join-Path $root '.git')) {
     $sourceCommit = git -C $root rev-parse HEAD
     if ($LASTEXITCODE -ne 0) { throw 'Could not resolve source commit.' }
+    $sourceChanges = git -C $root status --porcelain --untracked-files=normal
+    if ($LASTEXITCODE -ne 0) { throw 'Could not inspect source working tree.' }
+    $sourceDirty = [bool]$sourceChanges
 }
 $manifest = [ordered]@{
     schemaVersion = 1
@@ -102,6 +106,7 @@ $manifest = [ordered]@{
     version = $version
     platform = 'windows-x64'
     sourceCommit = $sourceCommit
+    sourceDirty = $sourceDirty
     executable = [ordered]@{ name = [IO.Path]::GetFileName($OutputPath); sha256 = $hash }
     signature = [ordered]@{ status = 'unsigned' }
     payloadSha256 = $ExpectedSha256.ToLowerInvariant()

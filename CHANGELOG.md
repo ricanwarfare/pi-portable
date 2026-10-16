@@ -4,6 +4,15 @@ Wrapper versions are independent of upstream Pi versions.
 
 ## Unreleased
 
+## 0.7.1 — 2026-10-16
+
+- Added case-path enforcement for inspection tools during /analyze, including omitted search paths, aliases, special files, and outside-case model requests. This is an application guard, not an OS sandbox.
+- Bound exported reports to the evidence manifest used for analysis and retained request/provider/model provenance. Replaced evidence requires a new analysis even when its replacement manifest is internally consistent.
+- Added bounded regular-file case reads, session-generation/disclosure checks, and synchronous submission-failure cleanup; documented upstream asynchronous-preflight recovery through /new and /case.
+- Help/version and explicit key setup no longer read a locked/unreadable old key. Ordinary inference, session-only mode, and managed-path checks retain their existing behavior.
+- Added sourceDirty provenance to both build manifests and strict clean-tree Windows release checks, plus explicit CI job time limits.
+- Completed the repository review and a dated popular-extension evaluation; updated README, IR, build, signing, and troubleshooting instructions. No new third-party extension was bundled.
+
 ## 0.7.0 — 2026-10-16
 
 - First-run setup now offers session-only key storage by default or explicit plaintext saving on the response drive. Added --response-session-key to request a temporary key without reading or replacing the launcher-saved key. Existing saved keys continue to work on ordinary launches.

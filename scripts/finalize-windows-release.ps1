@@ -12,6 +12,7 @@ $manifestPath = "$Path.build.json"
 $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
 if ($manifest.name -ne 'pi-response' -or $manifest.platform -ne 'windows-x64' -or $manifest.executable.name -ne [IO.Path]::GetFileName($Path)) { throw 'Invalid Windows build manifest.' }
 if ($ExpectedCommit -and $manifest.sourceCommit -ne $ExpectedCommit) { throw 'Build source commit does not match the release commit.' }
+if ($ExpectedCommit -and (($manifest.sourceDirty -isnot [bool]) -or $manifest.sourceDirty)) { throw 'Release verification requires an explicitly clean source working tree.' }
 $hash = (Get-FileHash -LiteralPath $Path -Algorithm SHA256).Hash.ToLowerInvariant()
 $signature = Get-AuthenticodeSignature -LiteralPath $Path
 if ($Mode -eq 'Unsigned') {

@@ -19,6 +19,17 @@ test('unsigned metadata is accurate; missing credentials, unsigned signatures an
   assert.notEqual(run('-Mode', 'Signed', '-ExpectedSubject', 'CN=Unconfigured Publisher').status, 0);
   assert.notEqual(run('-Mode', 'Unsigned', '-ExpectedCommit', 'wrong-commit').status, 0);
   assert.equal(readFileSync(`${binary}.build.json`, 'utf8'), manifest);
+  for (const value of [true, null, 0, 'false', [], undefined]) {
+    const dirty = JSON.parse(manifest); dirty.sourceDirty = value; dirty.sourceCommit = 'synthetic-test-commit';
+    writeFileSync(`${binary}.build.json`, JSON.stringify(dirty));
+    assert.notEqual(run('-Mode', 'Unsigned', '-ExpectedCommit', dirty.sourceCommit).status, 0);
+    assert.equal(readFileSync(`${binary}.build.json`, 'utf8'), JSON.stringify(dirty));
+  }
+  const clean = JSON.parse(manifest); clean.sourceDirty = false; clean.sourceCommit = 'synthetic-test-commit';
+  writeFileSync(`${binary}.build.json`, JSON.stringify(clean));
+  const verified = run('-Mode', 'Unsigned', '-ExpectedCommit', clean.sourceCommit);
+  assert.equal(verified.status, 0, verified.stdout + verified.stderr);
+  writeFileSync(`${binary}.build.json`, manifest);
   const bytes = readFileSync(binary); bytes[bytes.length - 1] ^= 1; writeFileSync(binary, bytes);
   assert.notEqual(run('-Mode', 'Unsigned').status, 0);
   assert.equal(readFileSync(`${binary}.build.json`, 'utf8'), manifest);

@@ -10,6 +10,8 @@ const root = path.resolve(import.meta.dirname, '..');
 const home = fs.mkdtempSync(path.join(root, '.build/analysis-smoke-'));
 fs.mkdirSync(path.join(home, 'agent'));
 const sample = await collectCase(home, 'SYNTHETIC TEST', ['processes'], async () => ({ stdout: Buffer.from('SYNTHETIC_PROCESS 123\n'), stderr: Buffer.alloc(0), status: 'ok', exitCode: 0, signal: null, error: null }));
+const outside = path.join(home, 'outside-secret.txt');
+fs.writeFileSync(outside, 'SYNTHETIC_OUTSIDE_MUST_NOT_SEND');
 const answer = { summary: 'Synthetic test only.', findings: [{ title: 'Process listed', kind: 'observation', confidence: 'high', explanation: 'The synthetic artifact lists process 123.', evidence: [{ artifact: 'evidence/processes.stdout.txt', startLine: 1, endLine: 1 }] }], unansweredQuestions: ['Synthetic evidence cannot establish compromise.'], recommendedNextSteps: ['Human review.'] };
 let requests = 0, serverError;
 const server = createServer(async (req, res) => {
@@ -19,12 +21,15 @@ const server = createServer(async (req, res) => {
     assert.equal(req.headers.authorization, 'Bearer local-test');
     assert.deepEqual(body.tools.map(t => t.function.name).sort(), ['find', 'grep', 'ls', 'read']);
     assert.match(raw, /Do not collect from this computer/);
+    assert.ok(!raw.includes('SYNTHETIC_OUTSIDE_MUST_NOT_SEND'), 'outside-case file contents must never reach the provider');
     const index = requests++;
-    const delta = index === 0 ? { role: 'assistant', tool_calls: [{ index: 0, id: 'read-evidence', type: 'function', function: { name: 'read', arguments: JSON.stringify({ path: path.join(sample.root, 'evidence/processes.stdout.txt') }) } }] } : { role: 'assistant', content: JSON.stringify(answer) };
-    if (index > 0) assert.match(raw, /SYNTHETIC_PROCESS 123/);
+    if (index === 1) assert.match(raw, /Analysis tools must stay inside the active case folder/);
+    if (index >= 2) assert.match(raw, /SYNTHETIC_PROCESS 123/, 'grep with an omitted path must search the active case');
+    const call = index === 0 ? ['read', { path: outside }] : index === 1 ? ['grep', { pattern: 'SYNTHETIC_PROCESS' }] : index === 2 ? ['read', { path: path.relative(root, path.join(sample.root, 'evidence/processes.stdout.txt')) }] : null;
+    const delta = call ? { role: 'assistant', tool_calls: [{ index: 0, id: `case-inspection-${index}`, type: 'function', function: { name: call[0], arguments: JSON.stringify(call[1]) } }] } : { role: 'assistant', content: JSON.stringify(answer) };
     const event = (value, finish_reason = null) => JSON.stringify({ id: 'analysis-test', object: 'chat.completion.chunk', created: 0, model: 'portable-test', choices: [{ index: 0, delta: value, finish_reason }], usage: { prompt_tokens: 1, completion_tokens: 1 } });
     res.writeHead(200, { 'content-type': 'text/event-stream' });
-    res.end(`data: ${event(delta)}\n\ndata: ${event({}, index === 0 ? 'tool_calls' : 'stop')}\n\ndata: [DONE]\n\n`);
+    res.end(`data: ${event(delta)}\n\ndata: ${event({}, call ? 'tool_calls' : 'stop')}\n\ndata: [DONE]\n\n`);
   } catch (error) { serverError = error; res.writeHead(500).end(String(error)); }
 });
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -79,16 +84,20 @@ try {
   send({ type: 'extension_ui_response', id: second.id, confirmed: true });
   await wait(e => e.type === 'agent_end');
   if (serverError) throw serverError;
-  assert.equal(requests, 2);
+  assert.equal(requests, 4);
   await prompt('report', '/report');
   await wait(e => e.type === 'extension_ui_request' && e.method === 'notify' && e.message.includes('Report exported:'));
   const report = fs.readdirSync(sample.root).find(name => /^analysis-.*\.md$/.test(name));
   assert.ok(report);
   assert.match(fs.readFileSync(path.join(sample.root, report), 'utf8'), /processes.stdout.txt:1-1/);
+  const exported = JSON.parse(fs.readFileSync(path.join(sample.root, report.replace(/\.md$/, '.json'))));
+  assert.equal(exported.analysisRequest.provider, 'ollama-cloud');
+  assert.equal(exported.analysisRequest.model, preset.providers['ollama-cloud'].models[0].id);
+  assert.equal(exported.analysisRequest.evidenceManifestSha256, exported.evidenceManifestSha256);
   await prompt('web-status', '/web status');
   assert.ok(events.some(e => e.type === 'extension_ui_request' && e.message === 'Web research: off.'));
   if (failure) throw failure;
-  console.log('PASS: real bundled IR workflow verifies case, respects disclosure denial, reads synthetic evidence through model tools, captures completed analysis and exports a validated report.');
+  console.log('PASS: real bundled IR workflow verifies case, respects disclosure denial, blocks outside-case reads, scopes omitted search paths, reads relative evidence paths and exports a report bound to model/request/source provenance.');
 } finally {
   child.stdin.end();
   child.kill();

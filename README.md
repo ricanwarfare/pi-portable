@@ -40,7 +40,7 @@ Use the [latest GitHub Release](https://github.com/ricanwarfare/pi-response/rele
 | Windows x64 | [pi-response.exe](https://github.com/ricanwarfare/pi-response/releases/latest/download/pi-response.exe) | [SHA256](https://github.com/ricanwarfare/pi-response/releases/latest/download/pi-response.exe.sha256) |
 | Linux x64 | [pi-response-linux-x64](https://github.com/ricanwarfare/pi-response/releases/latest/download/pi-response-linux-x64) | [SHA256](https://github.com/ricanwarfare/pi-response/releases/latest/download/pi-response-linux-x64.sha256) |
 
-Copy **only the executable for your platform** to your USB drive or support host. You do not need the entire `dist` folder, a separate icon, or a source-code ZIP. Keep the checksum file to verify the transfer. The optional `.build.json` file records the source commit, dependency pins, and hashes; it is not needed to run Pi.
+Copy **only the executable for your platform** to your USB drive or support host. You do not need the entire `dist` folder, a separate icon, or a source-code ZIP. Keep the checksum file to verify the transfer. The optional `.build.json` file records the source commit, whether the working tree was dirty, dependency pins, and hashes; it is not needed to run Pi.
 
 The repository contains source and build tools. Generated binaries are published in Releases and excluded from Git. If you clone the repository, [build the executable](docs/BUILDING.md) before running it.
 
@@ -190,7 +190,7 @@ Copy the whole case folder to your workstation, start Pi in a fresh session, and
 /report
 ```
 
-`/analyze` asks before sending case material to the selected provider and selects inspection tools. `/report` exports Markdown/JSON findings with observations, hypotheses, confidence, unanswered questions, and evidence citations. Export checks artifact hashes and source line ranges; it does not verify the model's interpretation. Analyst review is required.
+`/analyze` asks before sending case material to the selected provider and selects inspection tools. While that analysis runs, an application-level guard rejects tool paths outside the case, unsafe path aliases, and special files; omitted search paths use the case folder. This does not sandbox ordinary Pi sessions or shell commands. `/report` exports Markdown/JSON findings with observations, hypotheses, confidence, unanswered questions, and evidence citations. Export binds the report to the analyzed evidence manifest and records the request/provider/model identity, then checks hashes and source line ranges. It does not verify the model's interpretation. Analyst review is required.
 
 Inside Pi, `/triage [label]` collects all groups. `/host`, `/processes`, `/network`, `/persistence`, `/logons`, and `/timeline` collect individual groups into new cases. See the [IR workflow and collection limits](docs/INCIDENT_RESPONSE.md) for details. Live collection leaves a footprint and is not a forensic image or a guarantee that a host is clean.
 
@@ -285,9 +285,17 @@ For a local/private endpoint, add it to the portable `agent/models.json` followi
 | Upstream Pi | 1.3.0 |
 | Search tools | ripgrep 15.2.0, fd 10.5.0 |
 | Default connection | Ollama Cloud / DeepSeek 4.1 Flash |
-| Wrapper | 0.7.0 — session-only key choice; optional signing pipeline prepared |
+| Wrapper | 0.7.1 — case-scoped analysis and evidence-bound reports |
 
 Automated tests cover both launchers and actual tools using a local fake model, including default model selection and saved-key Bearer authentication. Linux tests also exercise a real pseudo-terminal for hidden input, replacement, and cancellation. No real provider account is used. Live Ollama account access and broader interactive TUI behavior still need validation. ARM64, macOS, and older operating systems are not validated targets.
+
+## Review and extension roadmap
+
+The [repository review](docs/REVIEW.md) records fixes, verification scope, remaining limits, and prioritized additions. The [extension survey](docs/EXTENSIONS.md) compares popular Pi packages with this portable IR workflow. No new extension was bundled during the review.
+
+The strongest next extension candidates are **RPIV investigation checklists** and **structured analyst questions**, after portable configuration isolation and Windows/Linux runtime tests. Larger subagent, permission, telemetry, and MCP frameworks need separate evaluation; download counts alone do not justify enabling them on an investigated host. Native Pi already has MCP support, deliberately disabled by this launcher's ordinary defaults.
+
+The next built-in features worth prioritizing are a local readiness check, verified single-case export/import that excludes keys and unrelated sessions, and a case/coverage status display. These are proposals, not current commands.
 
 ## Build, update, and contribute
 
@@ -324,7 +332,7 @@ node tests/triage-analysis-smoke.mjs
 node tests/runtime-smoke.mjs
 ```
 
-Linux builds use Go 1.27.2 and Python 3; tests also need Node.js 22+. Neither platform needs a checkout of upstream Pi or npm dependencies. Both builds download checksum-pinned official archives, with cached archives available for subsequent offline builds.
+Linux builds use Go 1.27.2 and Python 3.10+; tests also need Node.js 22+. Neither platform needs a checkout of upstream Pi or npm dependencies. Both builds download checksum-pinned official archives, with cached archives available for subsequent offline builds.
 
 See [building and release instructions](docs/BUILDING.md), [contributing](CONTRIBUTING.md), and the [changelog](CHANGELOG.md). The [Windows and Linux workflow](.github/workflows/windows.yml) builds and tests both platforms before publication.
 

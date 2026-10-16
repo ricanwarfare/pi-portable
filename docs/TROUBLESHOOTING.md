@@ -56,3 +56,9 @@ New data folders request `0700` and key files request `0600`. FAT/exFAT mount op
 ## Bug reports
 
 Include wrapper/upstream versions, Windows version/architecture, command structure, and redacted errors. State whether a fresh portable home reproduces the issue and whether media is removable/read-only. Never attach auth files, sessions, keys, or case evidence.
+
+## Case analysis remains pending
+
+An upstream asynchronous prompt rejection can occur before the extension receives a lifecycle event. If no model is running but analysis remains pending, use `/new`, reopen with `/case <folder>`, then retry `/analyze`. The original case files remain on disk. A case/session change during the disclosure or changed evidence requires a fresh analysis; old answers cannot be exported against replacement evidence.
+
+Help/version and explicit key setup do not read the old saved key. A locked/unreadable key can still block an ordinary inference launch; choose `--response-session-key`, reset it with `--response-setup`, or use an approved environment key. Managed key paths still reject symlinks/junctions.

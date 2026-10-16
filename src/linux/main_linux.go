@@ -423,6 +423,22 @@ func subcommand(arg string) bool {
 	return false
 }
 
+func needsSavedKey(args []string) bool {
+	// Informational commands do not authenticate. Option values and literal
+	// messages can contain these same words without changing that decision.
+	for i := 0; i < len(args) && args[i] != "--"; i++ {
+		switch args[i] {
+		case "--help", "-h", "--version", "-v":
+			return false
+		case "--mode", "--provider", "--model", "--api-key", "--system-prompt", "--append-system-prompt", "--name", "-n", "--session", "--session-id", "--fork", "--session-dir", "--models", "--tools", "-t", "--exclude-tools", "-xt", "--thinking", "--export", "--extension", "-e", "--skill", "--prompt-template", "--theme", "--use-theme", "--tui-mode":
+			if i+1 < len(args) {
+				i++
+			}
+		}
+	}
+	return true
+}
+
 func writeKey(home, path, key string) error {
 	guard, err := lock(home)
 	if err != nil {
@@ -599,7 +615,7 @@ func run(args []string) error {
 	if sessionKey {
 		cloudKey = ""
 	}
-	if !collectOnly && !sessionKey && cloudKey == "" {
+	if !collectOnly && !setup && !sessionKey && needsSavedKey(forwarded) && cloudKey == "" {
 		data, err := os.ReadFile(keyPath)
 		if err != nil && !os.IsNotExist(err) {
 			return err

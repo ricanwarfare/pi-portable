@@ -69,6 +69,36 @@ test('explicit setup refuses redirected input without consuming a prompt or savi
   assert.ok(!existsSync(join(home, 'agent/ollama-cloud.key')));
 });
 
+test('help, version and explicit setup do not read a locked saved key', () => {
+  const home = join(scratch, 'locked key');
+  const agent = join(home, 'agent'); mkdirSync(agent, { recursive: true });
+  const keyPath = join(agent, 'ollama-cloud.key'); writeFileSync(keyPath, 'synthetic-locked-key');
+  const script = `
+$ErrorActionPreference = 'Stop'
+$keyPath = Join-Path $env:PI_RESPONSE_HOME 'agent/ollama-cloud.key'
+$guard = [IO.File]::Open($keyPath, [IO.FileMode]::Open, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+try {
+  & $env:PI_RESPONSE_TEST_LAUNCHER --version
+  if ($LASTEXITCODE -ne 0) { throw 'Version read the locked key' }
+  & $env:PI_RESPONSE_TEST_LAUNCHER --tools read --help
+  if ($LASTEXITCODE -ne 0) { throw 'Help read the locked key' }
+  $ErrorActionPreference = 'Continue'
+  $setupError = & $env:PI_RESPONSE_TEST_LAUNCHER --response-setup 2>&1
+  if ($LASTEXITCODE -ne 1 -or ($setupError -join '\n') -notmatch 'requires an interactive console') { throw 'Setup read the locked key before checking its terminal' }
+} finally { $guard.Dispose() }
+`;
+  const child = spawnSync('pwsh.exe', ['-NoProfile', '-EncodedCommand', Buffer.from(script, 'utf16le').toString('base64')], {
+    env: { ...process.env, OLLAMA_API_KEY: '', PI_RESPONSE_HOME: home, PI_RESPONSE_TEST_LAUNCHER: launcher },
+    encoding: 'utf8', timeout: 30000,
+  });
+  assert.equal(child.status, 0, child.stdout + child.stderr);
+  assert.ok(!child.stdout.includes('synthetic-locked-key'));
+  assert.equal(readFileSync(keyPath, 'utf8'), 'synthetic-locked-key');
+  const prompt = run(['--system-prompt', '--version'], { home });
+  assert.equal(prompt.env.OLLAMA_API_KEY, 'synthetic-locked-key');
+  assert.equal(run(['--', '--help'], { home }).env.OLLAMA_API_KEY, 'synthetic-locked-key');
+});
+
 test('hidden secret input and storage choice support cancellation and session-only keys without writes', () => {
   const result = spawnSync(join(root, '.build/secret-input-test.exe'), [launcher], { encoding: 'utf8', timeout: 30000 });
   assert.equal(result.status, 0, result.stderr);

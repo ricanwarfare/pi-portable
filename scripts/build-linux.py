@@ -119,9 +119,10 @@ def main():
     sha = digest(output.read_bytes())
     Path(str(output) + ".sha256").write_text(f"{sha}  {output.name}\n", encoding="utf-8")
     commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip() if (ROOT / ".git").exists() else None
+    dirty = bool(subprocess.check_output(["git", "status", "--porcelain", "--untracked-files=normal"], cwd=ROOT, text=True).strip()) if commit else None
     manifest = {
         "schemaVersion": 1, "name": "pi-response", "version": metadata["version"],
-        "platform": "linux-x64", "sourceCommit": commit,
+        "platform": "linux-x64", "sourceCommit": commit, "sourceDirty": dirty,
         "goVersion": subprocess.check_output(["go", "version"], text=True).strip(),
         "executable": {"name": output.name, "sha256": sha},
         "payloadSha256": metadata["payloadSha256"], "upstream": release,

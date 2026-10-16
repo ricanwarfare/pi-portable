@@ -96,6 +96,19 @@ internal static class Program
             ((apiKey as string) == "${OLLAMA_API_KEY}" || (apiKey as string) == "$OLLAMA_API_KEY");
     }
 
+    private static bool NeedsSavedKey(List<string> args)
+    {
+        // These commands do not authenticate. Skip option values so a system
+        // prompt such as "--version" is still passed through with credentials.
+        var valueOptions = new[] { "--mode", "--provider", "--model", "--api-key", "--system-prompt", "--append-system-prompt", "--name", "-n", "--session", "--session-id", "--fork", "--session-dir", "--models", "--tools", "-t", "--exclude-tools", "-xt", "--thinking", "--export", "--extension", "-e", "--skill", "--prompt-template", "--theme", "--use-theme", "--tui-mode" };
+        for (var i = 0; i < args.Count && args[i] != "--"; i++)
+        {
+            if (Array.IndexOf(new[] { "--help", "-h", "--version", "-v" }, args[i]) >= 0) return false;
+            if (Array.IndexOf(valueOptions, args[i]) >= 0 && i + 1 < args.Count) i++;
+        }
+        return true;
+    }
+
     private static string Hash(Stream stream)
     {
         using (var sha = SHA256.Create())
@@ -280,7 +293,7 @@ internal static class Program
             CheckPath(keyPath);
             var cloudKey = Environment.GetEnvironmentVariable("OLLAMA_API_KEY");
             if (sessionKey) cloudKey = null;
-            if (!collectOnly && !sessionKey && String.IsNullOrWhiteSpace(cloudKey) && File.Exists(keyPath)) cloudKey = File.ReadAllText(keyPath).Trim();
+            if (!collectOnly && !setup && !sessionKey && NeedsSavedKey(forwarded) && String.IsNullOrWhiteSpace(cloudKey) && File.Exists(keyPath)) cloudKey = File.ReadAllText(keyPath).Trim();
             if (!collectOnly && (setup || sessionKey || (String.IsNullOrWhiteSpace(cloudKey) && NeedsOllamaSetup(agent, forwarded))))
             {
                 if (Console.IsInputRedirected || Console.IsOutputRedirected || Console.IsErrorRedirected)
