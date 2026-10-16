@@ -12,22 +12,35 @@ Pi Portable is an **Incident Response distribution fork of the [Pi coding agent]
 
 This repository maintains the portable launchers, provider presets, tests, and release tooling. It packages **unmodified official Pi binaries** rather than modifying Pi's agent source. It is an independent project, not an official Pi release.
 
-[**Download Windows / Linux x64**](https://github.com/ricanwarfare/pi-portable/releases/latest) · [Windows quick start](#quick-start) · [Linux quick start](#linux) · [Build from source](docs/BUILDING.md) · [Troubleshooting](docs/TROUBLESHOOTING.md)
+[**Download Windows / Linux x64**](https://github.com/ricanwarfare/pi-portable/releases/latest) · [Windows quick start](#windows-quick-start) · [Linux quick start](#linux-quick-start) · [Build from source](docs/BUILDING.md) · [Troubleshooting](docs/TROUBLESHOOTING.md)
 
 ## Why Pi Portable?
 
-- **One file to carry.** Distribute `pi-portable.exe`; the runtime and assets are embedded.
+- **One file per platform.** Carry `pi-portable.exe` for Windows or `pi-portable-linux-x64` for Linux; each embeds its runtime and assets.
 - **No development tools on the target.** No Node.js, Bun, npm, Git Bash, or local Ollama installation required.
 - **PowerShell for Windows investigations.** Inspect the host using its native shell alongside Pi's file-reading and search tools.
 - **Bash on Linux.** A native Linux x64 launcher provides the same portable storage and Ollama setup, with Bash as the shell tool.
 - **Search utilities included.** Bundled ripgrep and fd work without target-side downloads.
-- **Portable case data.** Configuration, sessions, and child-process temporary files default to a folder beside the EXE, or a location you choose.
+- **Portable case data.** Configuration, sessions, and child-process temporary files default to a folder beside the executable, or a location you choose.
 - **Ollama Cloud preconfigured.** DeepSeek 4.1 Flash is selected by default; supply your own API key.
 - **Less automatic loading from the host.** Normal agent launches disable workspace instruction/extension discovery, project approval, MCP, startup downloads, and telemetry.
 
 **One file to distribute does not mean one file while running.** The launcher extracts and verifies its embedded runtime before starting Pi. It is not a memory-only executable.
 
-## Quick start
+## Downloads
+
+Use the [latest GitHub Release](https://github.com/ricanwarfare/pi-portable/releases/latest) for ready-to-run binaries:
+
+| Platform | Executable | Checksum |
+| --- | --- | --- |
+| Windows x64 | [pi-portable.exe](https://github.com/ricanwarfare/pi-portable/releases/latest/download/pi-portable.exe) | [SHA256](https://github.com/ricanwarfare/pi-portable/releases/latest/download/pi-portable.exe.sha256) |
+| Linux x64 | [pi-portable-linux-x64](https://github.com/ricanwarfare/pi-portable/releases/latest/download/pi-portable-linux-x64) | [SHA256](https://github.com/ricanwarfare/pi-portable/releases/latest/download/pi-portable-linux-x64.sha256) |
+
+Copy **only the executable for your platform** to your USB drive or support host. You do not need the entire `dist` folder, a separate icon, or a source-code ZIP. Keep the checksum file to verify the transfer. The optional `.build.json` file records the source commit, dependency pins, and hashes; it is not needed to run Pi.
+
+The repository contains source and build tools. Generated binaries are published in Releases and excluded from Git. If you clone the repository, [build the executable](docs/BUILDING.md) before running it.
+
+## Windows quick start
 
 ### 1. Download and verify
 
@@ -43,13 +56,13 @@ The EXE is currently **unsigned**. A matching SHA256 confirms the file matches t
 
 ### 2. Enter your Ollama Cloud key once
 
-Create a key in [Ollama API key settings](https://ollama.com/settings/keys), then launch the EXE:
-
-You can **double-click `pi-portable.exe` in File Explorer**. It opens a console, asks for your key if needed, and starts Pi. This remains a terminal application; its working directory will normally be the EXE's folder. To investigate a particular directory, launch it from PowerShell as shown below, or set a shortcut's **Start in** folder.
+Create a key in [Ollama API key settings](https://ollama.com/settings/keys). **Double-click `pi-portable.exe` in File Explorer**, or launch it from PowerShell:
 
 ```powershell
 .\pi-portable.exe
 ```
+
+It opens a console, asks for your key if needed, and starts Pi. This remains a terminal application. With double-click launch, the working directory will normally be the EXE's folder. To investigate another directory, use PowerShell as shown below or set a shortcut's **Start in** folder.
 
 The preset connects directly to `https://ollama.com/v1` using model ID `deepseek-v4.1-flash`. No model download or local Ollama service is needed. Internet access and model access on your account are required. See [Ollama's model page](https://ollama.com/library/deepseek-v4.1-flash) and [API documentation](https://docs.ollama.com/api/openai-compatibility).
 
@@ -76,7 +89,7 @@ E:\Tools\pi-portable.exe -p 'Use PowerShell to list running processes, their pat
 
 Validate findings against the original evidence. Model conclusions are not a substitute for evidence preservation or analyst judgment.
 
-## Linux
+## Linux quick start
 
 Download `pi-portable-linux-x64` and its `.sha256` file from the [latest release](https://github.com/ricanwarfare/pi-portable/releases/latest). Put the executable on your response drive or transfer it to a support host:
 
@@ -101,32 +114,39 @@ export PI_PORTABLE_HOME='/home/analyst/ir/case-042/pi-data'
 
 Linux files must be launched from a terminal or SSH session. The executable and extracted runtime must be on filesystems that allow execution (`noexec` mounts block them). Newly created data directories request mode `0700`, and saved keys/configuration request `0600`; filesystem support and mount options determine enforcement. FAT/exFAT USB storage may not enforce owner-only permissions. Protect the drive.
 
+For interactive remote support, request a terminal with `ssh -t analyst@host './pi-portable-linux-x64'` after transferring the executable to that account's home directory. The saved key and sessions then live on the remote host, beside its executable, unless you choose another `PI_PORTABLE_HOME` there.
+
 Windows and Linux can share a portable data folder, including the saved key and model settings; each platform has its own extracted runtime hash. Use host-appropriate shell commands and review any custom settings carried between systems.
 
 ## Investigation examples
 
-Examples assume the EXE is on your PATH; otherwise use `.\pi-portable.exe` or its full path.
+Examples assume the executable is on your PATH. Otherwise use `.\pi-portable.exe` on Windows, `./pi-portable-linux-x64` on Linux, or the full path.
 
-| Task | Command |
-| --- | --- |
-| Review collected logs without a shell | `pi-portable.exe --tools read,grep,find,ls -p 'Review these logs for authentication anomalies. Cite source files and lines.'` |
-| Inspect network listeners | `pi-portable.exe -p 'Use PowerShell to list listening TCP ports and their owning processes.'` |
-| Name a case session | `pi-portable.exe --name 'Case-042 host-01'` |
-| Resume the previous session | `pi-portable.exe --continue` |
-| Inspect portable paths and wrapper version | `pi-portable.exe --portable-info` |
-| Show upstream Pi version | `pi-portable.exe --version` |
+| Task | Windows | Linux |
+| --- | --- | --- |
+| Review logs without a shell | `pi-portable.exe --tools read,grep,find,ls -p 'Review these logs for authentication anomalies. Cite source files and lines.'` | `pi-portable-linux-x64 --tools read,grep,find,ls -p 'Review these logs for authentication anomalies. Cite source files and lines.'` |
+| Name a case session | `pi-portable.exe --name 'Case-042 host-01'` | `pi-portable-linux-x64 --name 'Case-042 host-01'` |
+| Resume the previous session | `pi-portable.exe --continue` | `pi-portable-linux-x64 --continue` |
+| Inspect paths and wrapper version | `pi-portable.exe --portable-info` | `pi-portable-linux-x64 --portable-info` |
+| Show upstream Pi version | `pi-portable.exe --version` | `pi-portable-linux-x64 --version` |
+| Replace the saved Ollama key | `pi-portable.exe --portable-setup` | `pi-portable-linux-x64 --portable-setup` |
 
 Search respects ignore rules such as `.gitignore`; it is not exhaustive forensic enumeration.
 
 ### Choose your tools
 
-Default tools are `read,powershell,grep,find,ls`. PowerShell can modify the host. To work without a shell or dedicated editing tools:
+| Platform | Default tools |
+| --- | --- |
+| Windows | `read,powershell,grep,find,ls` |
+| Linux | `read,bash,grep,find,ls` |
+
+PowerShell and Bash can modify the host. To work without a shell or dedicated editing tools, use `--tools read,grep,find,ls` with either executable. On Windows:
 
 ```powershell
 .\pi-portable.exe --tools read,grep,find,ls
 ```
 
-To enable editing:
+To enable editing on Windows:
 
 ```powershell
 .\pi-portable.exe --tools read,powershell,edit,write,grep,find,ls
@@ -134,35 +154,39 @@ To enable editing:
 
 An explicit `--tools` list replaces the portable default. Pi also accepts `--no-tools` and `--exclude-tools`. Tool selection is not an operating-system security boundary.
 
+On Linux, use `--tools read,bash,edit,write,grep,find,ls` to enable the equivalent shell and editing tools.
+
 ## How it works
 
 ```text
-pi-portable.exe
+platform executable
   ├─ verifies and extracts the embedded Pi distribution
   ├─ creates the Ollama preset if configuration files are absent
   ├─ redirects Pi state and child temporary files to the portable home
   └─ starts Pi with the current working directory and console
-       ├─ PowerShell / file and search tools → investigated system
+       ├─ PowerShell or Bash / file and search tools → investigated system
        └─ model requests → Ollama Cloud
 ```
 
-The EXE contains Pi's runtime, assets, native helpers, ripgrep, and fd. Later launches verify the cached runtime against the embedded archive. Concurrent launches serialize extraction; changed or incomplete expected runtime files cause startup to stop.
+Each executable contains Pi's runtime, assets, native helpers, ripgrep, and fd. Later launches verify the cached runtime against the embedded archive. Concurrent launches serialize extraction; changed or incomplete expected runtime files cause startup to stop.
 
 Arguments, piped input, working directory, and Pi's exit code are preserved. Interactive, print, JSON, and RPC modes remain available. `--portable-notices` prints the embedded upstream license notice.
 
 ### Where data lives
 
 ```text
-pi-portable.exe
-pi-portable-data/
-├── runtime/<payload-sha256>/  Extracted distribution, search tools, licenses
-├── agent/                    settings.json, models.json, ollama-cloud.key, Pi auth/state
-├── sessions/                 Conversations grouped by working directory
-├── tmp/                      Child-process temporary files
-└── runtime.lock              Extraction/configuration lock
+response-drive/
+├── pi-portable.exe           Windows executable (optional if using Linux only)
+├── pi-portable-linux-x64     Linux executable (optional if using Windows only)
+└── pi-portable-data/
+    ├── runtime/<payload-sha256>/  Platform-specific distribution and licenses
+    ├── agent/                    settings.json, models.json, saved key, Pi auth/state
+    ├── sessions/                 Conversations grouped by working directory
+    ├── tmp/                      Child-process temporary files
+    └── runtime.lock              Extraction/configuration lock
 ```
 
-To store case data elsewhere or run the EXE from read-only media:
+To store case data elsewhere or run the executable from read-only media, set `PI_PORTABLE_HOME`. On Windows:
 
 ```powershell
 $env:PI_PORTABLE_HOME = 'E:\IR\Case-042\pi-data'
@@ -179,12 +203,14 @@ First launch creates `agent/models.json` and `agent/settings.json` from the embe
 
 Edit the portable copies to change the endpoint or model. Explicit `--provider` and `--model` arguments override saved defaults. The Ollama preset references `${OLLAMA_API_KEY}` at request time and caps configured output at 8,192 tokens per response.
 
-For a local/private endpoint, follow [Pi's compatible-endpoint configuration](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/models.md#configure-a-compatible-endpoint). No model weights are included.
+Changing providers does not require rebuilding the executable. For a built-in provider, supply its credentials and select it with `--provider` and `--model`, or use Pi's `/login` and `/model` commands. Set `defaultProvider` and `defaultModel` in the portable `agent/settings.json` to save your choice.
+
+For a local/private endpoint, add it to the portable `agent/models.json` following [Pi's compatible-endpoint configuration](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/models.md#configure-a-compatible-endpoint). No model weights are included.
 
 ## Incident Response boundaries
 
 - **Cloud evidence handling:** prompts and included tool results go to the selected provider, Ollama Cloud by default. Use an endpoint approved for your evidence-handling requirements.
-- **Host changes:** Pi runs with the launching account's permissions. PowerShell and enabled integrations can modify the host. This is not a sandbox, forensic write blocker, or zero-artifact tool.
+- **Host changes:** Pi runs with the launching account's permissions. PowerShell, Bash, and enabled integrations can modify the host. This is not a sandbox, forensic write blocker, or zero-artifact tool.
 - **Host trust:** integrity checks detect changed expected runtime files. They cannot establish trust in a compromised host or stop a privileged attacker changing files after verification.
 - **Automatic discovery:** normal launches disable project approval, AGENTS.md/CLAUDE.md discovery, extensions, skills, prompt templates, custom themes, and MCP. Explicit extension/skill paths can still load code or instructions.
 - **Network behavior:** startup network operations and telemetry are disabled. Inference and explicitly invoked commands can still use the network. Pi's `--offline` flag does not make cloud inference work offline.
@@ -206,6 +232,8 @@ Automated tests cover both launchers and actual tools using a local fake model, 
 
 ## Build, update, and contribute
 
+For a Windows build:
+
 ```powershell
 git clone https://github.com/ricanwarfare/pi-portable.git
 Set-Location pi-portable
@@ -214,11 +242,39 @@ node --test .\tests\launcher.test.mjs
 node .\tests\runtime-smoke.mjs
 ```
 
-Building requires Windows, PowerShell 7, and the .NET Framework C# compiler; tests also need Node.js 22+. A .NET SDK is not required. Builds download checksum-pinned official archives; cached archives allow subsequent builds without networking.
+Windows builds require PowerShell 7 and the .NET Framework C# compiler; tests also need Node.js 22+. A .NET SDK is not required.
+
+For a Linux build, clone the repository and run:
+
+```bash
+python3 scripts/build-linux.py
+cd src/linux && go test -v ./... && go vet ./...
+cd ../..
+python3 tests/linux-launcher.py
+node tests/runtime-smoke.mjs
+```
+
+Linux builds use Go 1.27.2 and Python 3; tests also need Node.js 22+. Neither platform needs a checkout of upstream Pi or npm dependencies. Both builds download checksum-pinned official archives, with cached archives available for subsequent offline builds.
 
 See [building and release instructions](docs/BUILDING.md), [contributing](CONTRIBUTING.md), and the [changelog](CHANGELOG.md). The [Windows and Linux workflow](.github/workflows/windows.yml) builds and tests both platforms before publication.
 
 Update by downloading a new release and retaining your data folder. **Do not use `pi update self` to update the wrapper**: changing the extracted runtime can make its next integrity check fail. See [troubleshooting](docs/TROUBLESHOOTING.md) for recovery.
+
+Upstream Pi updates are currently reviewed and applied through the pinned Windows and Linux manifests, followed by builds and tests. Deployed copies do not automatically replace their runtime.
+
+### Repository layout
+
+| Path | Purpose |
+| --- | --- |
+| `src/` | Windows launcher and native Linux launcher |
+| `scripts/` | Build, icon-generation, and changelog-to-release-note tooling |
+| `config/` | Embedded provider and settings templates |
+| `tests/` | Launcher integration tests and fake-model runtime smoke test |
+| `assets/` | Original icon artwork and required license files |
+| `docs/` | Maintained build and troubleshooting guides |
+| `upstream*.json`, `version.json` | Pinned dependency releases and wrapper version |
+
+Generated distributions (`dist/`), caches (`.build/`), prepared Linux bundles, reference checkouts, credentials, and sessions are excluded by [`.gitignore`](.gitignore). Release history is maintained in [`CHANGELOG.md`](CHANGELOG.md); GitHub release notes are generated from it. Published binaries, checksums, and manifests live in [GitHub Releases](https://github.com/ricanwarfare/pi-portable/releases).
 
 ## Attribution and license
 
