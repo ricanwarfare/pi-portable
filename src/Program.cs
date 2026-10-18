@@ -38,33 +38,6 @@ internal static class Program
         }
     }
 
-    private static bool? KeyStorage(Func<ConsoleKeyInfo> readKey)
-    {
-        while (true)
-        {
-            Console.Error.Write("Storage [1] session only (default), [2] save on this drive: ");
-            var choice = ReadSecret(readKey);
-            Console.Error.WriteLine();
-            if (choice == null) return null;
-            if (choice == "" || choice == "1") return false;
-            if (choice == "2") return true;
-            Console.Error.WriteLine("Choose 1 or 2, or press Esc to cancel.");
-        }
-    }
-
-    private static void StoreKey(string home, string keyPath, string key, bool save)
-    {
-        if (!save) return;
-        using (Lock(Path.Combine(home, "runtime.lock")))
-        {
-            CheckPath(keyPath);
-            var pending = keyPath + ".pending-" + Guid.NewGuid().ToString("N");
-            File.WriteAllText(pending, key, new UTF8Encoding(false));
-            if (File.Exists(keyPath)) File.Replace(pending, keyPath, null);
-            else File.Move(pending, keyPath);
-        }
-    }
-
     private static string Hash(Stream stream)
     {
         using (var sha = SHA256.Create())
@@ -226,12 +199,14 @@ internal static class Program
 
     private static int Main(string[] args)
     {
+        AppContext.SetSwitch("Switch.System.IO.UseLegacyPathHandling", false);
+        AppContext.SetSwitch("Switch.System.IO.BlockLongPaths", false);
         string run = null;
         try
         {
             var home = Environment.GetEnvironmentVariable("PI_PORTABLE_HOME");
             var storage = Environment.GetEnvironmentVariable("PI_PORTABLE_STORAGE") ?? "portable";
-            string configPath = null, project = Environment.CurrentDirectory, projectId = null, profile = null;
+            string configPath = null, project = Environment.CurrentDirectory, projectId = null, profile = null, forkSession = null;
             bool info = false, configure = false, promptKey = false;
             var forwarded = new List<string>();
             // Deliberately narrow upstream surface: wrapper policy cannot be disabled by flag order.
@@ -249,7 +224,7 @@ internal static class Program
                 if (arg == "--portable-info") { info = true; continue; }
                 if (arg == "--configure") { configure = true; continue; }
                 if (arg == "--session-key") { promptKey = true; continue; }
-                if (Array.IndexOf(new[] { "--portable-home", "--portable-storage", "--portable-config", "--project", "--project-id", "--profile" }, arg) >= 0)
+                if (Array.IndexOf(new[] { "--portable-home", "--portable-storage", "--portable-config", "--project", "--project-id", "--profile", "--fork-session" }, arg) >= 0)
                 {
                     if (++i == args.Length) throw new IOException("Missing value for " + arg);
                     switch (arg)
@@ -260,6 +235,7 @@ internal static class Program
                         case "--project": project = args[i]; break;
                         case "--project-id": projectId = args[i]; break;
                         case "--profile": profile = args[i]; break;
+                        case "--fork-session": forkSession = args[i]; break;
                     }
                     continue;
                 }
@@ -348,6 +324,13 @@ internal static class Program
             var temp = Path.Combine(run, "tmp");
             var sessions = Path.Combine(home, "sessions", projectId);
             foreach (var path in new[] { agent, sessions, temp }) { CheckPath(path); Directory.CreateDirectory(path); }
+            if (forkSession != null)
+            {
+                if (!System.Text.RegularExpressions.Regex.IsMatch(forkSession, "^[A-Za-z0-9_-][A-Za-z0-9_.-]*\\.jsonl$") || forkSession != Path.GetFileName(forkSession)) throw new IOException("Fork session must be a JSONL filename in this project's session directory.");
+                var sessionPath = Path.Combine(sessions, forkSession); CheckPath(sessionPath);
+                if (!File.Exists(sessionPath)) throw new IOException("Session file not found for this project.");
+                forwarded.InsertRange(0, new[] { "--fork", sessionPath });
+            }
             var provider = new Dictionary<string, object> {
                 { "name", "Configured internal endpoint" }, { "baseUrl", endpoint }, { "api", api },
                 { "apiKey", "${PI_PORTABLE_RUNTIME_KEY}" }, { "authHeader", false },
@@ -373,7 +356,11 @@ internal static class Program
             start.EnvironmentVariables["PI_PORTABLE_NETWORK"] = new JavaScriptSerializer().Serialize(config);
             start.EnvironmentVariables["PI_PORTABLE_TOOLS"] = tools;
             start.EnvironmentVariables["PI_PORTABLE_RUNTIME_KEY"] = auth == "none" ? "no-auth" : keyValue ?? "";
-            // Ignore inherited instructions that would disable transport verification or auto-install packages.
+            // Pinned Bun versions differ in their proxy:false support. Remove inherited
+            // proxy variables from this child only for deterministic direct mode.
+            if (Text(config, "proxy", "env") == "direct")
+                foreach (var variable in new[] { "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy" }) start.EnvironmentVariables.Remove(variable);
+            // Keep transport verification enabled even if the parent requested insecure TLS.
             start.EnvironmentVariables["NODE_TLS_REJECT_UNAUTHORIZED"] = "1";
             start.EnvironmentVariables["BUN_CONFIG_NO_CLEAR_TERMINAL"] = "1";
             start.EnvironmentVariables["PATH"] = Path.Combine(runtime, "tools", "rg") + ";" + Path.Combine(runtime, "tools", "fd") + ";" + Environment.GetEnvironmentVariable("PATH");

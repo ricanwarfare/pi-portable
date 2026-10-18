@@ -18,7 +18,7 @@ export function validateConfig(config) {
 
 // Exact target path and origin; redirects never receive credentials or trigger a second fetch.
 // This guard covers Pi's fetch-based model traffic. It is not an OS network sandbox.
-export function createGuard(config, { fetch: transport, env = process.env, read = readFileSync } = {}) {
+export function createGuard(config, { fetch: transport, env = process.env, read = readFileSync, report = () => {} } = {}) {
   const base = validateConfig(config);
   const route = `${base.pathname.replace(/\/$/, '')}/${config.api === 'openai-responses' ? 'responses' : 'chat/completions'}`;
   const endpoint = new URL(base); endpoint.pathname = route;
@@ -56,12 +56,14 @@ export function createGuard(config, { fetch: transport, env = process.env, read 
     const options = {
       method: request.method, headers, body: request.body, signal: request.signal,
       redirect: 'manual', duplex: 'half',
-      ...(proxyMode === 'direct' ? { proxy: '' } : proxyMode === 'env' ? {} : { proxy: proxyMode }),
+      // Direct-mode child environments have all proxy variables removed by the launcher.
+      ...(['direct', 'env'].includes(proxyMode) ? {} : { proxy: proxyMode }),
       tls: { rejectUnauthorized: true, ...(ca ? { ca } : {}) },
     };
     const response = await transport(endpoint.href, options);
     if (response.status >= 300 && response.status < 400) {
       await response.body?.cancel();
+      report('Pi Portable blocked an endpoint redirect; configure the final endpoint URL.');
       throw new Error('Pi Portable blocked an endpoint redirect');
     }
     return response;

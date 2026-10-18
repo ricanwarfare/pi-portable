@@ -66,6 +66,7 @@ $compiler = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
 if (-not (Test-Path -LiteralPath $compiler)) { throw '.NET Framework 4.x C# compiler is required on the build system.' }
 $buildInfo = Join-Path $buildDir 'BuildInfo.cs'
 $metadata = @(
+    '[assembly: System.Runtime.Versioning.TargetFramework(".NETFramework,Version=v4.8", FrameworkDisplayName = ".NET Framework 4.8")]',
     ('[assembly: System.Reflection.AssemblyVersion("' + $version + '.0")]'),
     ('[assembly: System.Reflection.AssemblyFileVersion("' + $version + '.0")]'),
     '[assembly: System.Reflection.AssemblyProduct("Pi Portable")]',
@@ -73,7 +74,7 @@ $metadata = @(
     ('internal static class BuildInfo { internal const string Version = "' + $version + '"; internal const string UpstreamVersion = "' + $release.version + '"; internal const string PayloadHash = "' + $ExpectedSha256.ToLowerInvariant() + '"; }')
 )
 [IO.File]::WriteAllLines($buildInfo, $metadata)
-& $compiler /nologo /optimize+ /target:exe /platform:x64 "/out:$OutputPath" "/win32icon:$root/assets/pi-portable.ico" /reference:System.IO.Compression.dll /reference:System.IO.Compression.FileSystem.dll /reference:System.Web.Extensions.dll "/resource:$PayloadZip,payload.zip" "/resource:$root/NOTICE.txt,NOTICE.txt" "/resource:$root/config/models.json,defaults.models.json" "/resource:$root/config/settings.json,defaults.settings.json" (Join-Path $root 'src/Program.cs') $buildInfo
+& $compiler /nologo /optimize+ /target:exe /platform:x64 "/out:$OutputPath" "/win32manifest:$root/src/app.manifest" "/win32icon:$root/assets/pi-portable.ico" /reference:System.IO.Compression.dll /reference:System.IO.Compression.FileSystem.dll /reference:System.Web.Extensions.dll "/resource:$PayloadZip,payload.zip" "/resource:$root/NOTICE.txt,NOTICE.txt" "/resource:$root/config/models.json,defaults.models.json" "/resource:$root/config/settings.json,defaults.settings.json" (Join-Path $root 'src/Program.cs') $buildInfo
 if ($LASTEXITCODE -ne 0) { throw 'C# compilation failed.' }
 $hash = (Get-FileHash -LiteralPath $OutputPath -Algorithm SHA256).Hash.ToLowerInvariant()
 [IO.File]::WriteAllText("$OutputPath.sha256", "$hash  $([IO.Path]::GetFileName($OutputPath))`n")

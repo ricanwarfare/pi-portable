@@ -1,0 +1,1 @@
+{"kind":"openai","baseUrl":"https://model.internal.example/v1","model":"company-coder","auth":"bearer","profile":"review","proxy":"env","caFile":"company-ca.pem"}

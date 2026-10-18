@@ -1,0 +1,158 @@
+name: Windows build and release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    timeout-minutes: 15
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+      - name: Check release tag
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          $version = (Get-Content version.json -Raw | ConvertFrom-Json).version
+          if ($env:RELEASE_TAG -ne "v$version") { throw 'Tag does not match version.json' }
+      - name: Build pinned Windows distribution
+        shell: pwsh
+        run: ./scripts/build.ps1
+      - name: Native launcher, transport, coding runtime and signing tests
+        shell: pwsh
+        run: ./scripts/test.ps1
+      - name: Validate changelog
+        shell: pwsh
+        run: ./scripts/release-notes.ps1 -Tag "v$((Get-Content version.json -Raw | ConvertFrom-Json).version)"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pi-portable-windows-x64
+          path: |
+            dist/pi-portable.exe
+            dist/pi-portable.exe.sha256
+            dist/pi-portable.exe.build.json
+          if-no-files-found: error
+
+  sign-windows:
+    timeout-minutes: 15
+    if: startsWith(github.ref, 'refs/tags/') && vars.WINDOWS_SIGNING_MODE == 'azure'
+    needs: [build]
+    runs-on: windows-2022
+    environment: code-signing
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: pi-portable-windows-x64
+          path: dist
+      - name: Validate signing configuration and tested input
+        shell: pwsh
+        env:
+          AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+          AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+          AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          SIGNING_ENDPOINT: ${{ vars.AZURE_SIGNING_ENDPOINT }}
+          SIGNING_ACCOUNT: ${{ vars.AZURE_SIGNING_ACCOUNT }}
+          SIGNING_PROFILE: ${{ vars.AZURE_SIGNING_PROFILE }}
+          SIGNING_SUBJECT: ${{ vars.WINDOWS_SIGNING_SUBJECT }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: |
+          foreach ($name in @('AZURE_CLIENT_ID','AZURE_TENANT_ID','AZURE_SUBSCRIPTION_ID','SIGNING_ENDPOINT','SIGNING_ACCOUNT','SIGNING_PROFILE','SIGNING_SUBJECT')) {
+            if ([String]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name))) { throw "Missing signing configuration: $name" }
+          }
+          $endpoint = [Uri]$env:SIGNING_ENDPOINT
+          if ($endpoint.Scheme -ne 'https' -or -not $endpoint.Host.EndsWith('.codesigning.azure.net') -or $endpoint.UserInfo) { throw 'Invalid Azure signing endpoint' }
+          ./scripts/finalize-windows-release.ps1 -Mode Unsigned -ExpectedCommit $env:RELEASE_COMMIT
+      - name: Authenticate signing identity with OIDC
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Sign Windows launcher
+        uses: azure/artifact-signing-action@c7ab2a863ab5f9a846ddb8265964877ef296ee82 # v2.0.0
+        with:
+          endpoint: ${{ vars.AZURE_SIGNING_ENDPOINT }}
+          signing-account-name: ${{ vars.AZURE_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ vars.AZURE_SIGNING_PROFILE }}
+          files: ${{ github.workspace }}\dist\pi-portable.exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+          exclude-environment-credential: true
+          exclude-azure-cli-credential: false
+      - name: Verify publisher, timestamp, and signed executable
+        shell: pwsh
+        env:
+          SIGNING_SUBJECT: ${{ vars.WINDOWS_SIGNING_SUBJECT }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: |
+          ./scripts/finalize-windows-release.ps1 -Mode Signed -ExpectedSubject $env:SIGNING_SUBJECT -ExpectedCommit $env:RELEASE_COMMIT
+          ./dist/pi-portable.exe --portable-info
+          if ($LASTEXITCODE -ne 0) { throw 'Signed launcher smoke test failed' }
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pi-portable-windows-x64-signed
+          path: |
+            dist/pi-portable.exe
+            dist/pi-portable.exe.sha256
+            dist/pi-portable.exe.build.json
+          if-no-files-found: error
+
+  release:
+    timeout-minutes: 10
+    if: >-
+      always() && !cancelled() && startsWith(github.ref, 'refs/tags/') &&
+      needs.build.result == 'success' &&
+      (needs.sign-windows.result == 'success' || needs.sign-windows.result == 'skipped')
+    needs: [build, sign-windows]
+    runs-on: windows-2022
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: ${{ vars.WINDOWS_SIGNING_MODE == 'azure' && 'pi-portable-windows-x64-signed' || 'pi-portable-windows-x64' }}
+          path: dist
+      - name: Enforce release signing policy
+        shell: pwsh
+        env:
+          SIGNING_MODE: ${{ vars.WINDOWS_SIGNING_MODE }}
+          SIGNING_SUBJECT: ${{ vars.WINDOWS_SIGNING_SUBJECT }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: |
+          $mode = if ([String]::IsNullOrEmpty($env:SIGNING_MODE)) { 'unsigned' } else { $env:SIGNING_MODE }
+          switch ($mode) {
+            'azure' { ./scripts/finalize-windows-release.ps1 -Mode Signed -ExpectedSubject $env:SIGNING_SUBJECT -ExpectedCommit $env:RELEASE_COMMIT }
+            { $_ -in @('', 'unsigned') } { ./scripts/finalize-windows-release.ps1 -Mode Unsigned -ExpectedCommit $env:RELEASE_COMMIT }
+            default { throw 'Unknown WINDOWS_SIGNING_MODE; refusing publication' }
+          }
+      - name: Publish tested executable
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          ./scripts/release-notes.ps1 -Tag $env:RELEASE_TAG
+          $notes = '.build/release-notes.md'
+          $signature = (Get-Content dist/pi-portable.exe.build.json -Raw | ConvertFrom-Json).signature
+          if ($signature.status -eq 'valid') { Add-Content $notes "`nWindows Authenticode publisher: $($signature.subject). Signature and timestamp verified before publication." }
+          else { Add-Content $notes "`nWindows executable: unsigned. Signing is not configured for this release." }
+          gh release create $env:RELEASE_TAG dist/pi-portable.exe dist/pi-portable.exe.sha256 dist/pi-portable.exe.build.json --verify-tag --title "Pi Portable $env:RELEASE_TAG" --notes-file $notes
+          if ($LASTEXITCODE -ne 0) { throw 'Release publication failed' }

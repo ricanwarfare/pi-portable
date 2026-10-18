@@ -28,11 +28,11 @@ New-Item -ItemType Directory -Force (Split-Path $OutputPath -Parent) | Out-Null
 $notes = @(
     "# Pi Portable $Tag",
     '',
-    'An Incident Response distribution fork of the [Pi coding agent](https://github.com/earendil-works/pi).',
+    'A portable internal-endpoint distribution of the [Pi coding agent](https://github.com/earendil-works/pi).',
     '',
     $body,
     '',
-    "See the [README](https://github.com/ricanwarfare/pi-portable/blob/$Tag/README.md) for downloads, setup, prerequisites, and incident response boundaries.",
+    "See the [README](https://github.com/ricanwarfare/pi-portable/blob/$Tag/README.md) for downloads, setup, prerequisites, and enterprise execution limitations.",
     ''
 ) -join "`n"
 [IO.File]::WriteAllText($OutputPath, $notes)

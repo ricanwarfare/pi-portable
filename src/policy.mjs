@@ -4,7 +4,7 @@ export default function portablePolicy(pi) {
   try {
     const config = JSON.parse(process.env.PI_PORTABLE_NETWORK);
     // Pi reports extension initialization errors and continues, so fail closed here.
-    globalThis.fetch = createGuard(config, { fetch: globalThis.fetch.bind(globalThis) });
+    globalThis.fetch = createGuard(config, { fetch: globalThis.fetch.bind(globalThis), report: message => console.error(message) });
   } catch {
     console.error('Pi Portable transport policy is invalid. Check portable.json, proxy and CA settings.');
     process.exit(1);
