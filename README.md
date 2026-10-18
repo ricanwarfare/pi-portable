@@ -2,7 +2,7 @@
 
 A single Windows x64 executable for the [Pi coding agent](https://github.com/earendil-works/pi), configured for your internal model service. No administrator access, Node.js, Bun, npm, Git, or model download is required on the target. Windows with .NET Framework 4.8 and permission to execute applications from your chosen storage is required. PowerShell is needed only for the `full` tool profile.
 
-Derived from [ricanwarfare/pi-response](https://github.com/ricanwarfare/pi-response), preserving its checksum-pinned official Pi packaging, safe extraction, bundled ripgrep/fd, Windows build provenance, and optional release signing. The upstream Pi binary is unmodified. Incident response, evidence collection, Ollama Cloud defaults, and web search are removed. This is an independent distribution.
+Derived from [ricanwarfare/pi-response](https://github.com/ricanwarfare/pi-response), preserving its checksum-pinned official Pi packaging, safe extraction, bundled ripgrep/fd, Windows build provenance, and optional release signing. The upstream Pi binary is unmodified. Incident response, evidence collection, Ollama Cloud defaults and its original web adapter are removed. Optional web access uses the separately bundled `pi-agent-web-access` package. This is an independent distribution.
 
 ## Start without installing
 
@@ -30,6 +30,16 @@ E:\Tools\pi-portable.exe --continue
 ```
 
 Authenticated services prompt for a hidden **session-only** key when attached to a terminal. Keys are never written by the launcher or passed in command arguments. For redirected/RPC use, supply `PI_PORTABLE_API_KEY` in the calling process environment using your organization's secret injection mechanism. `keyEnv` selects a different environment variable. `--session-key` ignores that variable and prompts again. There is no launcher credential-save option. Avoid putting a real key in a command typed into shell history.
+
+## Optional web search and page reading
+
+`pi-agent-web-access` **1.1.2** and its JavaScript dependencies are embedded in the EXE. Enable its `web_search` and `fetch_content` tools for a launch:
+
+```powershell
+E:\Tools\pi-portable.exe --web --profile edit --project C:\Projects\MyApp
+```
+
+Web access stays off by default. `--no-web` overrides an enabled config. Exa MCP search works without a search API key; `EXA_API_KEY` or `BRAVE_API_KEY` in the calling process environment selects authenticated services. Search sends queries to those external providers unless you configure compatible internal mirrors. Page fetching uses HTTPS by default; Jina fallback is separately disabled until `web.jina` is explicitly enabled. Search credentials are separate from model credentials, and its usage counter lives under the selected state directory. No npm installation or startup download is needed on the target. See [web configuration, allowlists and disclosure](docs/WEB_ACCESS.md).
 
 ## Endpoint configuration
 
@@ -93,6 +103,6 @@ Set-Location pi-portable
 
 The first build downloads hash-pinned archives. Subsequent builds reuse `.build` and work offline. To use an internally mirrored archive, retain the expected hash in `upstream-release.json` and populate the cache. `-PayloadZip FILE -ExpectedSha256 HASH` builds a custom/fixture payload and marks official upstream metadata absent; that ZIP must include `pi.exe`, the policy modules in `portable/`, and any required tools. Custom payloads are your responsibility.
 
-Outputs are `dist/pi-portable.exe`, `.sha256`, and `.build.json`. Tests include native launcher fixtures, actual bundled coding tools, resumed profiles, moved-project forks, internal HTTPS, untrusted CA rejection, explicit and environment proxies, bypass, redirect blocking, offline startup, state relocation, concurrent launch, archive traversal, runtime tampering, and release signature rejection. The `-RequireStandardUser` switch fails if run elevated. CI builds and tests on Windows and uploads artifacts; a matching `v0.1.0` tag publishes tested artifacts. No release or signing identity is assumed to exist.
+Outputs are `dist/pi-portable.exe`, `.sha256`, and `.build.json`. Tests include native launcher fixtures, actual bundled coding and web tools, resumed profiles, moved-project forks, internal HTTPS, untrusted CA rejection, explicit and environment proxies, bypass, redirect blocking, offline startup, state relocation, concurrent launch, archive traversal, runtime tampering, and release signature rejection. The `-RequireStandardUser` switch fails if run elevated. CI builds and tests on Windows and uploads artifacts; a matching `v0.2.0` tag publishes tested artifacts. No release or signing identity is assumed to exist.
 
 See [docs/BUILDING.md](docs/BUILDING.md) for build provenance and [CHANGELOG.md](CHANGELOG.md) for changes. Windows x64 is the only implemented target in this repository.

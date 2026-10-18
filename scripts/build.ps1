@@ -49,10 +49,19 @@ if ($official) {
                 }
             } finally { $source.Dispose() }
         }
-        foreach ($name in @('policy.mjs', 'network.mjs')) {
+        foreach ($name in @('policy.ts', 'network.mjs', 'web-network.mjs', 'web.ts')) {
             $target = $archive.CreateEntry("portable/$name")
             $inputStream = [IO.File]::OpenRead((Join-Path $root "src/$name"))
             $outputStream = $target.Open()
+            try { $inputStream.CopyTo($outputStream) } finally { $inputStream.Dispose(); $outputStream.Dispose() }
+        }
+        $webRelease = Get-Content (Join-Path $root 'web-access-release.json') -Raw | ConvertFrom-Json
+        foreach ($entry in $webRelease.files.PSObject.Properties) {
+            if ($entry.Name.Contains('..') -or $entry.Name.Contains(':') -or $entry.Name.StartsWith('/') -or $entry.Name.Contains('\')) { throw 'Unsafe web package path.' }
+            $file = Join-Path $root "vendor/pi-agent-web-access/$($entry.Name)"
+            if ((Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash -ne $entry.Value) { throw "Web extension checksum mismatch: $($entry.Name)" }
+            $target = $archive.CreateEntry("vendor/pi-agent-web-access/$($entry.Name)")
+            $inputStream = [IO.File]::OpenRead($file); $outputStream = $target.Open()
             try { $inputStream.CopyTo($outputStream) } finally { $inputStream.Dispose(); $outputStream.Dispose() }
         }
     } finally { $archive.Dispose() }
@@ -98,6 +107,7 @@ $manifest = [ordered]@{
     signature = [ordered]@{ status = 'unsigned' }
     payloadSha256 = $ExpectedSha256.ToLowerInvariant()
     upstream = $(if ($official) { $release } else { $null })
+    webAccess = $(if ($official) { $webRelease } else { $null })
     presets = [ordered]@{
         modelsSha256 = (Get-FileHash -LiteralPath (Join-Path $root 'config/models.json') -Algorithm SHA256).Hash.ToLowerInvariant()
         settingsSha256 = (Get-FileHash -LiteralPath (Join-Path $root 'config/settings.json') -Algorithm SHA256).Hash.ToLowerInvariant()

@@ -1,0 +1,224 @@
+{
+  "name": "pi-agent-web-access",
+  "version": "1.1.2",
+  "url": "https://registry.npmjs.org/pi-agent-web-access/-/pi-agent-web-access-1.1.2.tgz",
+  "integrity": "sha512-EX4Ni5u9xocW29RyyLqg25Xbd6nsyBj2ikIuunf8ZOyAARnDwkL12F9qpJEvDG1oZS93lqZnwKgQQigRZyI8qg==",
+  "sourceCommit": "c4bd7b9d459bc510283b91202449abb4c2f7bfc6",
+  "adaptations": [
+    "Redirect Exa usage ledger to PI_PORTABLE_WEB_STATE",
+    "Disable optional native canvas"
+  ],
+  "dependencies": [
+    {
+      "name": "@mixmark-io/domino",
+      "version": "2.2.0",
+      "license": "BSD-2-Clause",
+      "notices": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "@mozilla/readability",
+      "version": "0.5.0",
+      "license": "Apache-2.0",
+      "notices": [
+        "LICENSE.md"
+      ]
+    },
+    {
+      "name": "boolbase",
+      "version": "1.0.0",
+      "license": "ISC",
+      "notices": []
+    },
+    {
+      "name": "css-select",
+      "version": "5.2.2",
+      "license": "BSD-2-Clause",
+      "notices": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "css-what",
+      "version": "6.2.2",
+      "license": "BSD-2-Clause",
+      "notices": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "cssom",
+      "version": "0.5.0",
+      "license": "MIT",
+      "notices": [
+        "LICENSE.txt"
+      ]
+    },
+    {
+      "name": "dom-serializer",
+      "version": "2.0.0",
+      "license": "MIT",
+      "notices": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "domelementtype",
+      "version": "2.3.0",
+      "license": "BSD-2-Clause",
+      "notices": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "domhandler",
+      "version": "5.0.3",
+      "license": "BSD-2-Clause",
+      "notices": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "domutils",
+      "version": "3.2.2",
+      "license": "BSD-2-Clause",
+      "notices": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "entities",
+      "version": "4.5.0",
+      "license": "BSD-2-Clause",
+      "notices": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "htmlparser2",
+      "version": "9.1.0",
+      "license": "MIT",
+      "notices": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "linkedom",
+      "version": "0.16.11",
+      "license": "ISC",
+      "notices": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "nth-check",
+      "version": "2.1.1",
+      "license": "BSD-2-Clause",
+      "notices": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "p-limit",
+      "version": "6.2.0",
+      "license": "MIT",
+      "notices": [
+        "license"
+      ]
+    },
+    {
+      "name": "pi-agent-web-access",
+      "version": "1.1.2",
+      "license": "MIT",
+      "notices": []
+    },
+    {
+      "name": "turndown",
+      "version": "7.2.4",
+      "license": "MIT",
+      "notices": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "typebox",
+      "version": "1.1.38",
+      "license": "MIT",
+      "notices": [
+        "license"
+      ]
+    },
+    {
+      "name": "uhyphen",
+      "version": "0.2.0",
+      "license": "ISC",
+      "notices": [
+        "LICENSE"
+      ]
+    },
+    {
+      "name": "yocto-queue",
+      "version": "1.2.2",
+      "license": "MIT",
+      "notices": [
+        "license"
+      ]
+    }
+  ],
+  "files": {
+    "bundle.ts": "22c862d14c5cae065680f396434feca237bf21aab334946c5e8c95047e573ced",
+    "LICENSE": "34c5f3cc4c2b487ac9db5c31b00f5d384b52fdff43d9bd3d807e244804f2b7ac",
+    "licenses/@mixmark-io__domino/LICENSE": "9672b5ea831c360425e95b806b302e502582dd9718b056f29c40cf241daecb68",
+    "licenses/@mixmark-io__domino/package.json": "2190c3aeea2de40b2a9afcbee22d0603e91b1a490ab2e24387b251e75a5ab77a",
+    "licenses/@mozilla__readability/LICENSE.md": "a5b1e8181751ce05b85b7bfaa832b785e87086250a5148e679d17ca9bdcfa958",
+    "licenses/@mozilla__readability/package.json": "e13e7dedc05a3d79d2606b3b573859dc4454828b770ae11fe2ec8e0289e10d12",
+    "licenses/boolbase/package.json": "ca09c0dccbfc43be6be0ac89e9ffa19b64b30f9c74c64da27f719a7244a25e30",
+    "licenses/css-select/LICENSE": "cb992345949ccd6e8394b2cd6c465f7b897c864f845937dbf64e8997f389e164",
+    "licenses/css-select/package.json": "cfc1e661a525ae821a00994ce4d94790b209c21b35f6e19d54e8d1c61556d303",
+    "licenses/css-what/LICENSE": "cb992345949ccd6e8394b2cd6c465f7b897c864f845937dbf64e8997f389e164",
+    "licenses/css-what/package.json": "c3c772ed1135cead98192983bf582d404d21ced7c09c5219e7bb94cc54dfab27",
+    "licenses/cssom/LICENSE.txt": "e539937c489c4928ad7461669ec017f4d916fb3565fc26f5b8a0ce816d2ed23c",
+    "licenses/cssom/package.json": "f9babfc8744f2ed28a3661c14d6d8a0a015bdf437c52f996f5cc6111cb400237",
+    "licenses/dom-serializer/LICENSE": "94cfe87de9b178e8fee313a19178e625129e2ce559db32e772e7bd95114ee6ff",
+    "licenses/dom-serializer/package.json": "098603e7fee62c07fb392e31dae4dc151a3e03c72555ce1f9182011fbf898501",
+    "licenses/domelementtype/LICENSE": "cb992345949ccd6e8394b2cd6c465f7b897c864f845937dbf64e8997f389e164",
+    "licenses/domelementtype/package.json": "4ddf28a1e60ae7ec15f62cda0d72eb06bcae05b3819942d971c841b7cc0b6930",
+    "licenses/domhandler/LICENSE": "cb992345949ccd6e8394b2cd6c465f7b897c864f845937dbf64e8997f389e164",
+    "licenses/domhandler/package.json": "cbb42a446eef285863e04158c7f269e0e7b8e868c1042d6845e996d760f7376c",
+    "licenses/domutils/LICENSE": "cb992345949ccd6e8394b2cd6c465f7b897c864f845937dbf64e8997f389e164",
+    "licenses/domutils/package.json": "9a04689cc67f52e9f7323e0dd4d18c8cbe68744c3373ad524d133ddf12bf99ab",
+    "licenses/entities/LICENSE": "cb992345949ccd6e8394b2cd6c465f7b897c864f845937dbf64e8997f389e164",
+    "licenses/entities/package.json": "c92f657f679669a91bc32cd98f0b4812b3f4a9c6f3b3af3022a70cb25b7efc7c",
+    "licenses/htmlparser2/LICENSE": "204cfa747341660e4da64cd23e8c876c6b20279d247f48564993d3fc4a2eab47",
+    "licenses/htmlparser2/package.json": "11c8d27343a9c736b9eee064072b4a7f2b83413c0ccfe52106b57fd3ebf811ea",
+    "licenses/linkedom/LICENSE": "dc6d4961d8b6ee747231582ae9c53ce1d66bf76bc9f5a28f554c0e97210953bf",
+    "licenses/linkedom/package.json": "ed7da35409181e90cd065fb1894706f8d6f4890c3354acaf51a27afc2a37d1f7",
+    "licenses/nth-check/LICENSE": "cb992345949ccd6e8394b2cd6c465f7b897c864f845937dbf64e8997f389e164",
+    "licenses/nth-check/package.json": "4e6d8f4a3a8170c031465e79d30a3f47c97e115944d6d656dd087086b2da04f1",
+    "licenses/p-limit/license": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
+    "licenses/p-limit/package.json": "88ccdc4ca196ffb634f9e4b2e7bcf5d20c3211dcfdca96584ccc316b80312f6c",
+    "licenses/pi-agent-web-access/package.json": "562e96f89024ca61f4bb954fd27c74751c0c78fb35172460955327020f576cc1",
+    "licenses/turndown/LICENSE": "a055e3a15db4b4cbb5af381230eba085603126d7d5d8c4dae45ee85b877a9729",
+    "licenses/turndown/package.json": "333b1738ad3079742aaf7be7d8b0f0bec2661c44fb49cfeff80b66ce4cb3e040",
+    "licenses/typebox/license": "e8a7cc256941a26ba8234f04390165243a4d42f74fd6491934140605bf7eae2d",
+    "licenses/typebox/package.json": "130cd84e11062bd9463c22c8a8bc263ae90e334fb71e7e13612b67a083be1043",
+    "licenses/uhyphen/LICENSE": "2b0748436e16684ec912b82f153343c6063ae7a7f24fac680058ca06bf02f2a7",
+    "licenses/uhyphen/package.json": "5909de06aab4c4a969deb4c758541f5ec0584a651160f00fbbf73998d591024a",
+    "licenses/yocto-queue/license": "5c932d88256b4ab958f64a856fa48e8bd1f55bc1d96b8149c65689e0c61789d3",
+    "licenses/yocto-queue/package.json": "d5de75fe154851539d0adeac9731773ac5b93281ec4019c355cb330d20b176a7",
+    "upstream/.web-search.json.example": "777a961bdea0554401a1bda4c9d729ab06792681c254a31c48ccbfe3690028d3",
+    "upstream/dist/index.cjs": "b998335c6435cd66ea95d73aca15fbc104e04210ccfe171dde58970fb76b7096",
+    "upstream/dist/index.cjs.map": "83b65d1ec06f49e39c50bd7d693e90e876f96b00f67efd6932a5904457c66715",
+    "upstream/dist/index.d.cts": "83ca1bf81a687541a3b76986a9e00a47385560c8e3082e7b76e2a815eb45c2d8",
+    "upstream/dist/index.d.mts": "e7eccf3169f4b9b2a201e4bc35df85c1ffbd43090e10b334b11f69450f530175",
+    "upstream/dist/index.mjs": "7bab508e7ca85315f378457c07fc378ac67afdd7b7d903ecd539ef56c9bd7c75",
+    "upstream/dist/index.mjs.map": "351e1ef0d0e207353ad92ea045b2c8255cb650268de7bdc1cb02353dc83e758a",
+    "upstream/extract.ts": "c9a4f47338f412d3ee11db10bb50b6978957291c210e15640f6623e72d72122b",
+    "upstream/index.ts": "60fd4c28debebc242cfed272286efe2c0487a8a57d3f4bb32b7b6cc73f7fc63f",
+    "upstream/package.json": "562e96f89024ca61f4bb954fd27c74751c0c78fb35172460955327020f576cc1",
+    "upstream/README.md": "ff169d3451eea858b502d92689b6835302d1e44716d061c9fc70d697b6997b09",
+    "upstream/search.ts": "7fa5ea8104190ee237bfd6d0f9627450148c75567c4d546005e8ab42800da5d6",
+    "upstream/utils.ts": "fbc1b561421c8775a67a6968b4633e9baadb080056b27c539d86859d720903e0"
+  }
+}

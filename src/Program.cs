@@ -208,6 +208,7 @@ internal static class Program
             var storage = Environment.GetEnvironmentVariable("PI_PORTABLE_STORAGE") ?? "portable";
             string configPath = null, project = Environment.CurrentDirectory, projectId = null, profile = null, forkSession = null;
             bool info = false, configure = false, promptKey = false;
+            bool? webEnabled = null;
             var forwarded = new List<string>();
             // Deliberately narrow upstream surface: wrapper policy cannot be disabled by flag order.
             var values = new[] { "--name", "-n", "--thinking", "--mode", "--system-prompt", "--append-system-prompt", "--tui-mode" };
@@ -224,6 +225,8 @@ internal static class Program
                 if (arg == "--portable-info") { info = true; continue; }
                 if (arg == "--configure") { configure = true; continue; }
                 if (arg == "--session-key") { promptKey = true; continue; }
+                if (arg == "--web") { webEnabled = true; continue; }
+                if (arg == "--no-web") { webEnabled = false; continue; }
                 if (Array.IndexOf(new[] { "--portable-home", "--portable-storage", "--portable-config", "--project", "--project-id", "--profile", "--fork-session" }, arg) >= 0)
                 {
                     if (++i == args.Length) throw new IOException("Missing value for " + arg);
@@ -282,7 +285,7 @@ internal static class Program
                 if (Array.IndexOf(values, forwarded[i]) >= 0) i++;
             }
             var config = ReadObject(configPath);
-            var known = new[] { "kind", "baseUrl", "model", "auth", "keyEnv", "profile", "proxy", "caFile", "contextWindow", "maxTokens", "api", "apiVersion", "headers", "compat", "allowHttp" };
+            var known = new[] { "kind", "baseUrl", "model", "auth", "keyEnv", "profile", "proxy", "caFile", "contextWindow", "maxTokens", "api", "apiVersion", "headers", "compat", "allowHttp", "web" };
             foreach (var key in config.Keys) if (Array.IndexOf(known, key) < 0) throw new IOException("Unknown configuration field: " + key);
             var kind = Text(config, "kind", "openai");
             if (Array.IndexOf(new[] { "openai", "ollama", "azure", "custom" }, kind) < 0) throw new IOException("Unknown endpoint kind.");
@@ -317,6 +320,19 @@ internal static class Program
             var ca = Text(config, "caFile", "");
             if (ca.Length > 0) { ca = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(configPath), ca)); CheckPath(ca); if (!File.Exists(ca)) throw new IOException("CA bundle not found."); }
             config["caFile"] = ca; config["auth"] = auth; config["baseUrl"] = endpoint;
+            if (webEnabled.HasValue)
+            {
+                object existingWeb;
+                var web = config.TryGetValue("web", out existingWeb) ? existingWeb as Dictionary<string, object> : new Dictionary<string, object>();
+                if (web == null) throw new IOException("web must be an object.");
+                web["enabled"] = webEnabled.Value; config["web"] = web;
+            }
+            object webConfigValue, webIsEnabled;
+            if (config.TryGetValue("web", out webConfigValue))
+            {
+                var webConfig = webConfigValue as Dictionary<string, object>;
+                if (webConfig != null && webConfig.TryGetValue("enabled", out webIsEnabled) && Object.Equals(webIsEnabled, true)) tools += ",web_search,fetch_content";
+            }
             CheckPath(home); Directory.CreateDirectory(home);
             var runtime = Prepare(home);
             run = Path.Combine(home, "runs", Guid.NewGuid().ToString("N"));
@@ -324,6 +340,7 @@ internal static class Program
             var temp = Path.Combine(run, "tmp");
             var sessions = Path.Combine(home, "sessions", projectId);
             foreach (var path in new[] { agent, sessions, temp }) { CheckPath(path); Directory.CreateDirectory(path); }
+            var webState = Path.Combine(home, "web"); CheckPath(webState); Directory.CreateDirectory(webState);
             if (forkSession != null)
             {
                 if (!System.Text.RegularExpressions.Regex.IsMatch(forkSession, "^[A-Za-z0-9_-][A-Za-z0-9_.-]*\\.jsonl$") || forkSession != Path.GetFileName(forkSession)) throw new IOException("Fork session must be a JSONL filename in this project's session directory.");
@@ -341,7 +358,7 @@ internal static class Program
             else provider["compat"] = new { supportsStore = false, supportsDeveloperRole = false, supportsReasoningEffort = false, maxTokensField = "max_tokens" };
             WriteJson(Path.Combine(agent, "models.json"), new { providers = new Dictionary<string, object> { { "portable", provider } } });
             WriteJson(Path.Combine(agent, "settings.json"), new { defaultProvider = "portable", defaultModel = model, defaultThinkingLevel = "off" });
-            var defaults = new List<string> { "--offline", "--no-approve", "--no-extensions", "--no-mcp", "--no-skills", "--no-prompt-templates", "--no-themes", "--no-context-files", "--extension", Path.Combine(runtime, "portable", "policy.mjs"), "--tools", tools };
+            var defaults = new List<string> { "--offline", "--no-approve", "--no-extensions", "--no-mcp", "--no-skills", "--no-prompt-templates", "--no-themes", "--no-context-files", "--extension", Path.Combine(runtime, "portable", "policy.ts"), "--tools", tools };
             if (!localOnly) defaults.AddRange(new[] { "--provider", "portable", "--model", model });
             defaults.AddRange(forwarded);
             var commandLine = new List<string>(); foreach (var arg in defaults) commandLine.Add(Quote(arg));
@@ -355,6 +372,7 @@ internal static class Program
             start.EnvironmentVariables["PI_PORTABLE_UPSTREAM_VERSION"] = BuildInfo.UpstreamVersion;
             start.EnvironmentVariables["PI_PORTABLE_NETWORK"] = new JavaScriptSerializer().Serialize(config);
             start.EnvironmentVariables["PI_PORTABLE_TOOLS"] = tools;
+            start.EnvironmentVariables["PI_PORTABLE_WEB_STATE"] = webState;
             start.EnvironmentVariables["PI_PORTABLE_RUNTIME_KEY"] = auth == "none" ? "no-auth" : keyValue ?? "";
             // Pinned Bun versions differ in their proxy:false support. Remove inherited
             // proxy variables from this child only for deterministic direct mode.

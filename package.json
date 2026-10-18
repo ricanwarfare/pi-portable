@@ -1,0 +1,7 @@
+{
+  "name": "pi-portable-build",
+  "private": true,
+  "type": "module",
+  "scripts": { "bundle:web": "node scripts/bundle-web.mjs" },
+  "devDependencies": { "esbuild": "0.25.12", "pi-agent-web-access": "1.1.2" }
+}

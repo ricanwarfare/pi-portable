@@ -35,6 +35,7 @@ Remove `caFile` or set it to `""` when the bundled TLS trust is sufficient. The 
 | `contextWindow`, `maxTokens` | Model limits; default 32768 and 4096 |
 | `headers` | Object of header names/values; values can use `${VARIABLE}` interpolation from the process environment |
 | `compat` | Pi OpenAI compatibility object; default disables store, developer role and reasoning effort, and uses max_tokens |
+| `web` | Optional web tool configuration; disabled by default. See WEB_ACCESS.md. `--web`/`--no-web` override it for one launch. |
 
 Proxy `env` delegates `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` and `NO_PROXY` (and their lowercase variants) to the bundled Bun transport. Explicit proxy URLs still honor `NO_PROXY`. `direct` disables proxying. Proxy authentication may be supplied in the process proxy environment URL; do not commit it into configuration. PAC, Windows integrated authentication (NTLM/Kerberos), SOCKS, automatic OS proxy discovery, and mutual TLS client certificates are not implemented/tested here; use an approved local gateway if required. A proxy may observe request destinations; your enterprise trust configuration controls TLS inspection.
 

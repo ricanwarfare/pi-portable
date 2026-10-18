@@ -1,2 +1,5 @@
 * text=auto eol=lf
 *.ico binary
+vendor/pi-agent-web-access/upstream/** -text
+vendor/pi-agent-web-access/licenses/** -text
+vendor/pi-agent-web-access/LICENSE -text
