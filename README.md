@@ -1,5 +1,7 @@
 # Pi Portable
 
+**Start here:** [Build, configure a custom provider, and use the agent](docs/GETTING_STARTED.md). Includes copyable commands, session-only authentication, internal HTTPS/proxy setup, subagents and web access.
+
 A single Windows x64 executable for the [Pi coding agent](https://github.com/earendil-works/pi), configured for your internal model service. No administrator access, Node.js, Bun, npm, Git, or model download is required on the target. Windows with .NET Framework 4.8 and permission to execute applications from your chosen storage is required. PowerShell is needed only for the `full` tool profile.
 
 Derived from [ricanwarfare/pi-response](https://github.com/ricanwarfare/pi-response), preserving its checksum-pinned official Pi packaging, safe extraction, bundled ripgrep/fd, Windows build provenance, and optional release signing. The upstream Pi binary is unmodified. Incident response, evidence collection, Ollama Cloud defaults and its original web adapter are removed. Optional web access uses the separately bundled `pi-agent-web-access` package. This is an independent distribution.
@@ -111,6 +113,6 @@ Set-Location pi-portable
 
 The first build downloads hash-pinned archives. Subsequent builds reuse `.build` and work offline. To use an internally mirrored archive, retain the expected hash in `upstream-release.json` and populate the cache. `-PayloadZip FILE -ExpectedSha256 HASH` builds a custom/fixture payload and marks official upstream metadata absent; that ZIP must include `pi.exe`, the policy modules in `portable/`, and any required tools. Custom payloads are your responsibility.
 
-Outputs are `dist/pi-portable.exe`, `.sha256`, and `.build.json`. Tests include native launcher fixtures, actual bundled coding and web tools, resumed profiles, moved-project forks, internal HTTPS, untrusted CA rejection, explicit and environment proxies, bypass, redirect blocking, offline startup, state relocation, concurrent launch, archive traversal, runtime tampering, and release signature rejection. The `-RequireStandardUser` switch fails if run elevated. CI builds and tests on Windows and uploads artifacts; a matching `v0.2.0` tag publishes tested artifacts. No release or signing identity is assumed to exist.
+Outputs are `dist/pi-portable.exe`, `.sha256`, and `.build.json`. Tests include native launcher fixtures, actual bundled coding, web and subagent tools, resumed profiles, moved-project forks, internal HTTPS, untrusted CA rejection, explicit and environment proxies, bypass, redirect blocking, offline startup, state relocation, concurrent launch, archive traversal, runtime tampering, and release signature rejection. The `-RequireStandardUser` switch fails if run elevated. CI builds and tests on Windows and uploads artifacts; a tag matching version.json publishes tested artifacts. No release or signing identity is assumed to exist.
 
 See [docs/BUILDING.md](docs/BUILDING.md) for build provenance and [CHANGELOG.md](CHANGELOG.md) for changes. Windows x64 is the only implemented target in this repository.

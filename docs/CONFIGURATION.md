@@ -1,5 +1,7 @@
 # Configuration
 
+For the complete first-run sequence and custom-provider examples, see [GETTING_STARTED.md](GETTING_STARTED.md).
+
 `--configure` writes a starter file without extracting the runtime or contacting any service. It refuses to overwrite an existing file. Edit it with a text editor. Unknown top-level fields are rejected.
 
 ```json

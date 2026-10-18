@@ -2,6 +2,8 @@
 
 ## 0.3.0
 
+- Document first-run setup, source builds, custom Chat Completions/Responses providers, authentication, internal CA/proxy configuration and common troubleshooting; add a copyable custom Chat Completions example.
+
 - Embed pi-subagents 0.79.1, published source/resources, runtime dependencies, licenses and checked hashes.
 - Add opt-in `--subagents` / `--no-subagents`, seven built-in roles, bounded foreground parallel tasks and sequential chains using the embedded Pi SDK.
 - Keep child models, tools, credentials, web scope and state within portable configuration; disable detached Windows runners, workflow scripts, external agents, scheduling and automatic worktrees.

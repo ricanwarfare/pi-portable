@@ -1,0 +1,12 @@
+{
+  "kind": "custom",
+  "baseUrl": "https://gateway.internal.example/api/v1",
+  "model": "company-coder",
+  "api": "openai-completions",
+  "auth": "bearer",
+  "keyEnv": "PI_PORTABLE_API_KEY",
+  "profile": "review",
+  "proxy": "env",
+  "contextWindow": 32768,
+  "maxTokens": 4096
+}
