@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { join, resolve } from 'node:path';
@@ -8,6 +8,8 @@ import { join, resolve } from 'node:path';
 const root = resolve(import.meta.dirname, '..');
 const scratch = mkdtempSync(join(root, '.build/subagents-runtime ')); mkdirSync(join(scratch, '.git'));
 const systemPath = [join(process.env.SystemRoot, 'System32'), process.env.SystemRoot, join(process.env.SystemRoot, 'System32/WindowsPowerShell/v1.0')].join(';');
+const progress = [];
+let heartbeat = () => {};
 function sse(res, delta, finish = 'stop') {
   const chunk = (value, finish_reason = null) => ({ id: 'subagents-test', object: 'chat.completion.chunk', created: 0, model: 'local-coder', choices: [{ index: 0, delta: value, finish_reason }], usage: { prompt_tokens: 1, completion_tokens: 1 } });
   res.writeHead(200, { 'content-type': 'text/event-stream', connection: 'close' });
@@ -15,6 +17,7 @@ function sse(res, delta, finish = 'stop') {
 }
 function tool(res, name, params, id = 'call') { sse(res, { role: 'assistant', tool_calls: [{ index: 0, id, type: 'function', function: { name, arguments: JSON.stringify(params) } }] }, 'tool_calls'); }
 function run(baseUrl, home, args = [], config = {}) {
+  progress.push(`launch: ${home.split(/[\\/]/).at(-1)} ${args.join(' ')}`);
   mkdirSync(home, { recursive: true });
   writeFileSync(join(home, 'portable.json'), JSON.stringify({ baseUrl, model: 'local-coder', auth: 'bearer', proxy: 'direct', ...config }));
   return new Promise((done, reject) => {
@@ -24,9 +27,19 @@ function run(baseUrl, home, args = [], config = {}) {
     });
     let stdout = '', stderr = '';
     child.stdout.on('data', data => { stdout += data; }); child.stderr.on('data', data => { stderr += data; });
-    const timer = setTimeout(() => { child.kill(); reject(new Error(`Timed out: ${stdout}\n${stderr}`)); }, 90000);
-    child.on('error', error => { clearTimeout(timer); reject(error); });
-    child.on('close', status => { clearTimeout(timer); done({ status, stdout, stderr }); });
+    let timer;
+    const timeout = reason => {
+      heartbeat = () => {}; clearTimeout(timer); clearTimeout(deadline);
+      // Killing just the launcher leaves Pi alive with inherited pipes and can stall the test runner.
+      spawnSync(join(process.env.SystemRoot, 'System32/taskkill.exe'), ['/PID', String(child.pid), '/T', '/F'], { windowsHide: true, timeout: 10000 });
+      reject(new Error(`${reason}\nProgress: ${progress.join(' | ')}\n${stdout}\n${stderr}`));
+    };
+    const deadline = setTimeout(() => timeout('Subagent scenario exceeded its 4-minute total limit'), 240000);
+    heartbeat = () => { clearTimeout(timer); timer = setTimeout(() => timeout('Subagent scenario made no progress for 90 seconds'), 90000); };
+    heartbeat();
+    const clear = () => { heartbeat = () => {}; clearTimeout(timer); clearTimeout(deadline); };
+    child.on('error', error => { clear(); reject(error); });
+    child.on('close', status => { clear(); done({ status, stdout, stderr }); });
   });
 }
 function files(dir) { return readdirSync(dir).flatMap(name => { const path = join(dir, name); return statSync(path).isDirectory() ? files(path) : [path]; }); }
@@ -39,6 +52,7 @@ test('bundled subagents enforce profiles, isolate web credentials and execute fo
   const server = createServer(async (req, res) => {
     try {
       if (req.url === '/mcp') {
+        progress.push('child web search'); heartbeat();
         assert.equal(req.headers.authorization, undefined); assert.equal(req.headers['api-key'], undefined); webCalls++;
         let text = ''; for await (const chunk of req) text += chunk;
         assert.equal(JSON.parse(text).params.name, 'web_search_exa');
@@ -47,6 +61,7 @@ test('bundled subagents enforce profiles, isolate web credentials and execute fo
       assert.equal(req.url, '/v1/chat/completions'); assert.equal(req.headers.authorization, 'Bearer synthetic-parent-secret');
       let text = ''; for await (const chunk of req) text += chunk;
       const payload = JSON.parse(text); assert.equal(payload.model, 'local-coder');
+      progress.push(`model: ${mode} parentStep=${parentStep} childCalls=${childCalls}`); heartbeat();
       assert.ok(!JSON.stringify(payload).includes('AMBIENT_AGENT_OVERRIDE_MUST_NOT_LOAD'));
       const names = payload.tools.map(tool => tool.function.name);
       if (mode === 'off') { assert.ok(!names.includes('subagent')); sse(res, { role: 'assistant', content: 'SUBAGENTS_OFF_OK' }); return; }
