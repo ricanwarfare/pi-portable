@@ -11,6 +11,8 @@
 **/cases/
 **/runtime.lock
 **/auth.json
+**/credentials/
+*.dpapi
 **/auth.json.lock/
 **/ollama-cloud.key*
 .env

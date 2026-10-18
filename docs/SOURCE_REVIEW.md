@@ -1,5 +1,7 @@
 # Source review and derivation
 
+Version 0.4.0 adds an STA Windows Forms settings window and DPAPI CurrentUser key storage in the native launcher. The trusted settings extension registers user commands rather than model tools, inherits the terminal for the settings process and requests a launcher restart only after successful Save. The launcher regenerates transport/tool configuration from the persisted choices on restart. Model keys are separately encrypted with endpoint/authentication entropy; environment injection retains precedence. Tests exercise actual form controls, DPAPI persistence/scope/tampering, key removal/replacement, model/feature restoration, restart precedence and packaged command registration.
+
 Reference source: `ricanwarfare/pi-response` commit `845c7dba1d250564797d961cceb21bccb7a62ea1`. Upstream runtime source reviewed at Pi v1.3.0, commit `71023aec1546d6d677a65669c5665c0927ce0dd0`. The reference repository was cloned for inspection and left unchanged.
 
 The inspection covered the Windows C# launcher, payload/build/release manifests, Windows and Linux release workflow, signing/finalization gates, credential input fixtures, launcher/runtime/session tool tests, source update scripts, embedded web package and IR workflow, and runtime compatibility documentation. The new repository retains the Windows infrastructure and excludes the Linux distribution and IR/web feature trees.

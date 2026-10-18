@@ -4,6 +4,8 @@ $dir = Join-Path $root '.build/fixture'
 New-Item -ItemType Directory -Force $dir | Out-Null
 & "$env:WINDIR/Microsoft.NET/Framework64/v4.0.30319/csc.exe" /nologo /target:exe /platform:x64 "/out:$dir\pi.exe" (Join-Path $PSScriptRoot 'Fixture.cs')
 if ($LASTEXITCODE -ne 0) { throw 'Fixture compilation failed' }
+& "$env:WINDIR/Microsoft.NET/Framework64/v4.0.30319/csc.exe" /nologo /target:exe /platform:x64 "/out:$root\.build\settings-test.exe" "/win32manifest:$root/src/app.manifest" /reference:System.Web.Extensions.dll /reference:System.Security.dll /reference:System.Windows.Forms.dll /reference:System.Drawing.dll (Join-Path $PSScriptRoot 'SettingsHarness.cs')
+if ($LASTEXITCODE -ne 0) { throw 'Settings harness compilation failed' }
 & "$env:WINDIR/Microsoft.NET/Framework64/v4.0.30319/csc.exe" /nologo /target:exe /platform:x64 "/out:$root\.build\secret-input-test.exe" (Join-Path $PSScriptRoot 'SecretInput.cs')
 if ($LASTEXITCODE -ne 0) { throw 'Secret input test compilation failed' }
 Add-Type -AssemblyName System.IO.Compression.FileSystem

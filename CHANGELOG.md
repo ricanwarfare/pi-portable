@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0
+
+- Add native Windows first-run settings for double-click launches, remembered provider/model/project, API/auth format, CA/proxy options, coding profile, web access and delegation.
+- Add `/portable`, `/web` and `/delegation` settings commands; Save persists preferences and automatically restarts with the selected project's latest saved session.
+- Add optional account-bound DPAPI model-key storage scoped to endpoint/authentication. Keep CLI terminal entry session-only, preserve environment overrides, support forgetting/replacing keys and recover from missing/unreadable saved keys through setup.
+- Test real Windows form controls, preference restoration, DPAPI encryption/scope/tampering/relocation, environment overrides, forgetting keys, automatic restart and actual packaged command registration.
+
 ## 0.3.0
 
 - Document first-run setup, source builds, custom Chat Completions/Responses providers, authentication, internal CA/proxy configuration and common troubleshooting; add a copyable custom Chat Completions example.

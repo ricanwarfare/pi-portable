@@ -79,6 +79,31 @@ test('info, configure and notices work without extraction or credentials', () =>
   assert.equal(run(['--portable-notices']).status, 0);
 });
 
+test('native settings remember model, features and DPAPI key across launches without plaintext persistence', () => {
+  const home = join(scratch, 'remembered-settings');
+  const setup = spawnSync(join(root, '.build/settings-test.exe'), [launcher, home, scratch, join(root, '.build/settings-preview.png')], { encoding: 'utf8', timeout: 30000, env: { ...process.env, PI_PORTABLE_API_KEY: '' } });
+  assert.equal(setup.status, 0, setup.stdout + setup.stderr); assert.match(setup.stdout, /SETTINGS_AND_DPAPI_OK/);
+  const launch = run([], { home }); assert.equal(launch.status, 0, launch.stderr);
+  assert.equal(launch.env.PI_PORTABLE_RUNTIME_KEY, 'synthetic-remembered-secret');
+  assert.ok(launch.actualArgs.includes('remembered-model'));
+  assert.ok(launch.actualArgs.some(value => value.includes('web_search') && value.includes('subagent')));
+  const override = run([], { home, env: { PI_PORTABLE_API_KEY: 'synthetic-environment-override' } });
+  assert.equal(override.env.PI_PORTABLE_RUNTIME_KEY, 'synthetic-environment-override');
+  const failed = run(['--session-key'], { home }); assert.equal(failed.status, 1); assert.match(failed.stderr, /requires a terminal/);
+  assert.equal(run(['--settings'], { home }).status, 1, 'Redirected launches must not open a desktop dialog');
+  for (const path of [join(home, 'portable.json'), ...readdirSync(join(home, 'credentials')).map(name => join(home, 'credentials', name))])
+    assert.ok(!readFileSync(path).includes(Buffer.from('synthetic-remembered-secret')), path);
+});
+
+test('in-app settings restart applies persisted features and model and continues the project', () => {
+  const home = join(scratch, 'settings-restart');
+  const updated = { ...baseConfig, model: 'changed-model', defaultProject: scratch, web: { enabled: true }, subagents: { enabled: true } };
+  const result = run(['--no-web', '--no-subagents', '--profile', 'review'], { home, env: { PI_FIXTURE_RESTART_CONFIG: JSON.stringify(updated) } });
+  assert.equal(result.status, 0, result.stderr); assert.ok(result.actualArgs.includes('changed-model'));
+  assert.ok(result.actualArgs.includes('--continue'));
+  assert.ok(result.actualArgs.some(value => value.includes('web_search') && value.includes('subagent')));
+});
+
 test('malformed config, missing values and misspelled fields fail closed', () => {
   for (const config of [{ ...baseConfig, secret: 'bad' }, { ...baseConfig, baseUrl: 'https://user:secret@internal/v1' }, { ...baseConfig, kind: 'unknown' }, { ...baseConfig, keyEnv: '!command' }]) {
     const home = mkdtempSync(join(scratch, 'invalid-'));

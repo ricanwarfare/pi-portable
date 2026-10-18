@@ -49,7 +49,7 @@ if ($official) {
                 }
             } finally { $source.Dispose() }
         }
-        foreach ($name in @('policy.ts', 'network.mjs', 'web-network.mjs', 'web.ts', 'subagents.ts')) {
+        foreach ($name in @('policy.ts', 'network.mjs', 'web-network.mjs', 'web.ts', 'subagents.ts', 'settings.ts')) {
             $target = $archive.CreateEntry("portable/$name")
             $inputStream = [IO.File]::OpenRead((Join-Path $root "src/$name"))
             $outputStream = $target.Open()
@@ -92,7 +92,7 @@ $metadata = @(
     ('internal static class BuildInfo { internal const string Version = "' + $version + '"; internal const string UpstreamVersion = "' + $release.version + '"; internal const string PayloadHash = "' + $ExpectedSha256.ToLowerInvariant() + '"; }')
 )
 [IO.File]::WriteAllLines($buildInfo, $metadata)
-& $compiler /nologo /optimize+ /target:exe /platform:x64 "/out:$OutputPath" "/win32manifest:$root/src/app.manifest" "/win32icon:$root/assets/pi-portable.ico" /reference:System.IO.Compression.dll /reference:System.IO.Compression.FileSystem.dll /reference:System.Web.Extensions.dll "/resource:$PayloadZip,payload.zip" "/resource:$root/NOTICE.txt,NOTICE.txt" "/resource:$root/config/models.json,defaults.models.json" "/resource:$root/config/settings.json,defaults.settings.json" (Join-Path $root 'src/Program.cs') $buildInfo
+& $compiler /nologo /optimize+ /target:exe /platform:x64 "/out:$OutputPath" "/win32manifest:$root/src/app.manifest" "/win32icon:$root/assets/pi-portable.ico" /reference:System.IO.Compression.dll /reference:System.IO.Compression.FileSystem.dll /reference:System.Web.Extensions.dll /reference:System.Security.dll /reference:System.Windows.Forms.dll /reference:System.Drawing.dll "/resource:$PayloadZip,payload.zip" "/resource:$root/NOTICE.txt,NOTICE.txt" "/resource:$root/config/models.json,defaults.models.json" "/resource:$root/config/settings.json,defaults.settings.json" (Join-Path $root 'src/Program.cs') (Join-Path $root 'src/Settings.cs') $buildInfo
 if ($LASTEXITCODE -ne 0) { throw 'C# compilation failed.' }
 $hash = (Get-FileHash -LiteralPath $OutputPath -Algorithm SHA256).Hash.ToLowerInvariant()
 [IO.File]::WriteAllText("$OutputPath.sha256", "$hash  $([IO.Path]::GetFileName($OutputPath))`n")

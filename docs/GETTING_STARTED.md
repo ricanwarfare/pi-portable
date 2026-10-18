@@ -1,5 +1,7 @@
 # Build, configure and use Pi Portable
 
+**Prefer clicking?** Double-click the EXE to set up your provider, model, key and project in a Windows settings window. Enable Web access and Delegation there to remember those choices. Inside the agent, type `/portable` to change them; saving automatically restarts and continues the project session. See [APP_SETTINGS.md](APP_SETTINGS.md) for encrypted key storage and its portability limits. The command-line steps below remain supported.
+
 ## 1. Get the executable
 
 Target machines need Windows x64, .NET Framework 4.8, a writable state folder and permission to run the executable and its extracted child tools. They do not need administrator rights, Node.js, npm, Git or an installed Pi. The `full` profile uses Windows PowerShell. The EXE is unsigned unless your organization configures signing; AppLocker, WDAC, SmartScreen or other enterprise rules can still block it. The application does not change those rules.
@@ -78,7 +80,7 @@ Choose authentication as follows:
 | No authentication | `"auth": "none"` |
 | Custom header such as `X-Company-Token` | `"auth": "none", "headers": { "X-Company-Token": "${COMPANY_TOKEN}" }` |
 
-With Bearer/API-key authentication, an interactive launch prompts for a hidden session-only key when the configured environment variable is absent. The launcher does not save it. `--session-key` forces a new prompt. For automated or redirected launches, inject `PI_PORTABLE_API_KEY` through your approved secret mechanism; there is no interactive prompt for redirected input.
+With Bearer/API-key authentication, a launch first uses the configured environment variable, then an explicitly remembered DPAPI key. If neither exists, an interactive launch prompts for a hidden session-only key; that terminal prompt does not save it. `--session-key` forces a new prompt without replacing a saved key. For automated or redirected launches, inject `PI_PORTABLE_API_KEY` through your approved secret mechanism or use a key already saved by the same Windows user; there is no interactive prompt for redirected input.
 
 For a custom header, the placeholder in JSON stays literal and its environment variable must exist before launch. The launcher does not prompt for custom-header values. This Windows PowerShell-compatible example reads one without putting the value into command history, then clears this process's variable when Pi exits:
 

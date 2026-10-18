@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading;
 using System.Web.Script.Serialization;
 
-internal static class Program
+internal static partial class Program
 {
     private static Dictionary<string, object> ReadObject(string path)
     {
@@ -197,7 +197,20 @@ internal static class Program
         }
     }
 
+    private static bool restartRequested;
+    [STAThread]
     private static int Main(string[] args)
+    {
+        int result;
+        do {
+            restartRequested = false;
+            result = Run(args);
+            if (restartRequested) args = RestartArguments(args);
+        } while (restartRequested);
+        return result;
+    }
+
+    private static int Run(string[] args)
     {
         AppContext.SetSwitch("Switch.System.IO.UseLegacyPathHandling", false);
         AppContext.SetSwitch("Switch.System.IO.BlockLongPaths", false);
@@ -207,7 +220,7 @@ internal static class Program
             var home = Environment.GetEnvironmentVariable("PI_PORTABLE_HOME");
             var storage = Environment.GetEnvironmentVariable("PI_PORTABLE_STORAGE") ?? "portable";
             string configPath = null, project = Environment.CurrentDirectory, projectId = null, profile = null, forkSession = null;
-            bool info = false, configure = false, promptKey = false;
+            bool info = false, configure = false, promptKey = false, settings = false, explicitProject = false;
             bool? webEnabled = null;
             bool? subagentsEnabled = null;
             var forwarded = new List<string>();
@@ -225,6 +238,7 @@ internal static class Program
                 }
                 if (arg == "--portable-info") { info = true; continue; }
                 if (arg == "--configure") { configure = true; continue; }
+                if (arg == "--settings") { settings = true; continue; }
                 if (arg == "--session-key") { promptKey = true; continue; }
                 if (arg == "--web") { webEnabled = true; continue; }
                 if (arg == "--no-web") { webEnabled = false; continue; }
@@ -238,7 +252,7 @@ internal static class Program
                         case "--portable-home": home = args[i]; break;
                         case "--portable-storage": storage = args[i]; break;
                         case "--portable-config": configPath = args[i]; break;
-                        case "--project": project = args[i]; break;
+                        case "--project": project = args[i]; explicitProject = true; break;
                         case "--project-id": projectId = args[i]; break;
                         case "--profile": profile = args[i]; break;
                         case "--fork-session": forkSession = args[i]; break;
@@ -263,6 +277,15 @@ internal static class Program
                 : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "pi-portable-data");
             home = Path.GetFullPath(home);
             configPath = Path.GetFullPath(configPath ?? Path.Combine(home, "portable.json"));
+            var interactive = !Console.IsInputRedirected && !Console.IsOutputRedirected && !Console.IsErrorRedirected;
+            if (settings || (args.Length == 0 && interactive && NeedsSetup(home, configPath)))
+            {
+                if (!interactive) throw new IOException("Settings require an interactive Windows desktop terminal.");
+                if (!ShowSettings(home, configPath, project)) return settings ? 2 : 0;
+                if (settings) return 0;
+            }
+            if (!info && !configure && !explicitProject && File.Exists(configPath))
+                project = Text(ReadObject(configPath), "defaultProject", project);
             project = ProjectRoot(project);
             if (projectId == null)
                 using (var bytes = new MemoryStream(Encoding.UTF8.GetBytes(project.TrimEnd('\\').ToUpperInvariant()))) projectId = Hash(bytes).Substring(0, 24);
@@ -288,7 +311,7 @@ internal static class Program
                 if (Array.IndexOf(values, forwarded[i]) >= 0) i++;
             }
             var config = ReadObject(configPath);
-            var known = new[] { "kind", "baseUrl", "model", "auth", "keyEnv", "profile", "proxy", "caFile", "contextWindow", "maxTokens", "api", "apiVersion", "headers", "compat", "allowHttp", "web", "subagents" };
+            var known = new[] { "kind", "baseUrl", "model", "auth", "keyEnv", "profile", "proxy", "caFile", "contextWindow", "maxTokens", "api", "apiVersion", "headers", "compat", "allowHttp", "web", "subagents", "rememberKey", "defaultProject" };
             foreach (var key in config.Keys) if (Array.IndexOf(known, key) < 0) throw new IOException("Unknown configuration field: " + key);
             var kind = Text(config, "kind", "openai");
             if (Array.IndexOf(new[] { "openai", "ollama", "azure", "custom" }, kind) < 0) throw new IOException("Unknown endpoint kind.");
@@ -304,6 +327,8 @@ internal static class Program
             var keyEnv = Text(config, "keyEnv", "PI_PORTABLE_API_KEY");
             if (!System.Text.RegularExpressions.Regex.IsMatch(keyEnv, "^[A-Za-z_][A-Za-z0-9_]*$")) throw new IOException("Invalid keyEnv name.");
             var keyValue = Environment.GetEnvironmentVariable(keyEnv);
+            if (!localOnly && !promptKey && auth != "none" && String.IsNullOrWhiteSpace(keyValue) && RememberKey(config))
+                keyValue = LoadKey(home, endpoint, auth);
             if (!localOnly && auth != "none" && (promptKey || String.IsNullOrWhiteSpace(keyValue)))
             {
                 if (Console.IsInputRedirected || Console.IsOutputRedirected || Console.IsErrorRedirected) throw new IOException("Set " + keyEnv + " in this process environment; interactive key entry requires a terminal.");
@@ -375,7 +400,7 @@ internal static class Program
                     disabledFeatures = new[] { "agent-management", "watchdog", "panes", "missions", "lane-management", "external-machines", "extension-bindings", "gates", "workflow-scripts" }
                 });
             }
-            var defaults = new List<string> { "--offline", "--no-approve", "--no-extensions", "--no-mcp", "--no-skills", "--no-prompt-templates", "--no-themes", "--no-context-files", "--extension", Path.Combine(runtime, "portable", "policy.ts"), "--tools", tools };
+            var defaults = new List<string> { "--offline", "--no-approve", "--no-extensions", "--no-mcp", "--no-skills", "--no-prompt-templates", "--no-themes", "--no-context-files", "--extension", Path.Combine(runtime, "portable", "policy.ts"), "--extension", Path.Combine(runtime, "portable", "settings.ts"), "--tools", tools };
             if (subagentsOn) defaults.AddRange(new[] { "--extension", Path.Combine(runtime, "portable", "subagents.ts") });
             if (!localOnly) defaults.AddRange(new[] { "--provider", "portable", "--model", model });
             defaults.AddRange(forwarded);
@@ -391,6 +416,10 @@ internal static class Program
             start.EnvironmentVariables["PI_PORTABLE_NETWORK"] = new JavaScriptSerializer().Serialize(config);
             start.EnvironmentVariables["PI_PORTABLE_TOOLS"] = tools;
             start.EnvironmentVariables["PI_PORTABLE_WEB_STATE"] = webState;
+            start.EnvironmentVariables["PI_PORTABLE_LAUNCHER"] = Assembly.GetExecutingAssembly().Location;
+            start.EnvironmentVariables["PI_PORTABLE_HOME"] = home;
+            start.EnvironmentVariables["PI_PORTABLE_CONFIG"] = configPath;
+            start.EnvironmentVariables["PI_PORTABLE_RESTART"] = Path.Combine(run, "restart.request");
             start.EnvironmentVariables["PI_SUBAGENTS_TEMP_ROOT"] = Path.Combine(home, "subagents", projectId);
             start.EnvironmentVariables["PI_SUBAGENT_PI_BINARY"] = Path.Combine(runtime, "pi.exe");
             start.EnvironmentVariables["PI_SUBAGENT_MAX_DEPTH"] = "1";
@@ -408,7 +437,13 @@ internal static class Program
             start.EnvironmentVariables["PATH"] = Path.Combine(runtime, "tools", "rg") + ";" + Path.Combine(runtime, "tools", "fd") + ";" + Environment.GetEnvironmentVariable("PATH");
             start.EnvironmentVariables["TEMP"] = temp; start.EnvironmentVariables["TMP"] = temp; start.EnvironmentVariables["BUN_TMPDIR"] = temp;
             Console.CancelKeyPress += delegate(object sender, ConsoleCancelEventArgs e) { e.Cancel = true; };
-            using (var child = Process.Start(start)) { child.WaitForExit(); return child.ExitCode; }
+            using (var child = Process.Start(start)) {
+                child.WaitForExit();
+                var restart = Path.Combine(run, "restart.request"); CheckPath(restart);
+                restartRequested = child.ExitCode == 0 && File.Exists(restart);
+                if (restartRequested) File.Delete(restart);
+                return child.ExitCode;
+            }
         }
         catch (Exception error) { Console.Error.WriteLine("pi-portable: " + error.Message); return 1; }
         finally

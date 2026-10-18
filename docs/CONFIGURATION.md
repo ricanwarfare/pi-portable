@@ -39,6 +39,8 @@ Remove `caFile` or set it to `""` when the bundled TLS trust is sufficient. The 
 | `compat` | Pi OpenAI compatibility object; default disables store, developer role and reasoning effort, and uses max_tokens |
 | `web` | Optional web tool configuration; disabled by default. See WEB_ACCESS.md. `--web`/`--no-web` override it for one launch. |
 | `subagents` | Optional `{ "enabled": true }`; disabled by default. `--subagents`/`--no-subagents` override it. See SUBAGENTS.md for supported foreground operations. |
+| `rememberKey` | Boolean, CLI default false. Settings-window preference for using a separately stored DPAPI model key. No clear-text key field is supported. See APP_SETTINGS.md. |
+| `defaultProject` | Existing project folder remembered by the GUI; used when `--project` is absent. |
 
 Proxy `env` delegates `HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY` and `NO_PROXY` (and their lowercase variants) to the bundled Bun transport. Explicit proxy URLs still honor `NO_PROXY`. `direct` disables proxying. Proxy authentication may be supplied in the process proxy environment URL; do not commit it into configuration. PAC, Windows integrated authentication (NTLM/Kerberos), SOCKS, automatic OS proxy discovery, and mutual TLS client certificates are not implemented/tested here; use an approved local gateway if required. A proxy may observe request destinations; your enterprise trust configuration controls TLS inspection.
 
@@ -49,3 +51,5 @@ The Azure example uses the deployment Chat Completions route. Azure's newer comp
 Supported upstream value options: `--name`/`-n`, `--thinking`, `--mode` (`rpc`, `json`, `text`), `--system-prompt`, `--append-system-prompt`, `--tui-mode`. Supported flags: `--print`/`-p`, `--continue`/`-c`, `--resume`/`-r`, `--no-session`, `--verbose`, `--help`/`-h`, `--version`/`-v`. The wrapper adds endpoint, model, policy and tools; unsupported options are rejected. `--version` displays Pi's version; `--portable-info` displays the distribution version and state paths. `--help` shows upstream help, including flags deliberately unavailable through this wrapper; use this file for the supported surface.
 
 RPC automation must use the same configured provider and profile. The model tool-call hook enforces the profile even if a client changes visible tools. RPC itself and user-authored shell operations are not an operating-system sandbox.
+
+`--settings` opens the native settings window in an interactive desktop terminal. `/portable`, `/web` and `/delegation` open it inside the terminal agent. Saving remembers the selected model/features and restarts with the saved project session. Settings dialogs are unavailable to redirected/print/RPC automation and are not exposed as model tools. GUI settings and encrypted key behavior are documented in APP_SETTINGS.md.

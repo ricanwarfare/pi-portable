@@ -2,7 +2,7 @@
 
 Validated on October 18, 2026, using the actual Windows x64 distribution built from this source. The full suite ran with `scripts/test.ps1 -RequireStandardUser`, which reported `administrator token: False`.
 
-Result for distribution 0.3.0: **29 tests passed, zero failures, zero skips**, approximately 195 seconds. The build succeeded using the pinned official Pi 1.3.0 runtime, bundled rg/fd, pi-agent-web-access 1.1.2 and pi-subagents 0.79.1 with their bundled dependencies; `--version` returned `1.3.0`. The output is unsigned. Release signature tests verify that an unsigned executable, changed bytes, wrong publisher, wrong commit and dirty-source manifests cannot pass the signed release gate. The subagent integration is additionally rerun after role-discovery and native PowerShell adaptations; clean-source CI checks the final committed build.
+Result for distribution 0.4.0: **33 tests passed, zero failures, zero skips**, approximately 186 seconds. The build succeeded using the pinned official Pi 1.3.0 runtime, bundled rg/fd, pi-agent-web-access 1.1.2 and pi-subagents 0.79.1 with their bundled dependencies; `--version` returned `1.3.0`. Native form, DPAPI, restart and settings-command tests join the existing runtime regressions. Settings tests are additionally rerun after final setup-recovery and inherited-terminal refinements; clean-source CI checks the final committed build. The output is unsigned. Release signature tests verify that an unsigned executable, changed bytes, wrong publisher, wrong commit and dirty-source manifests cannot pass the signed release gate.
 
 | Area | Verified |
 | --- | --- |
@@ -10,6 +10,9 @@ Result for distribution 0.3.0: **29 tests passed, zero failures, zero skips**, a
 | State | EXE-only relocation, portable/user-profile selection, project roots/partitions, separate concurrent launch state |
 | Runtime integrity | Modified/extra files, junctions and unsafe ZIP paths rejected; concurrent extraction serialized |
 | Credentials | Session environment passed, redirected secret prompt rejected, key bytes absent from normal persisted state |
+| Native settings | Real Windows form controls save/restore model, project and feature toggles; key input masked, advanced web settings retained, GUI commands registered in actual offline runtime |
+| Remembered credentials | DPAPI round trip, endpoint/auth scope, wrong entropy and corrupted blob rejection, same-account relocation, endpoint replacement, blank-field retention, explicit forgetting and environment precedence |
+| In-app changes | Cancel/failure do not request restart; successful Save restarts with persisted model/features and continues the selected project; print/RPC cannot open settings dialogs |
 | Coding tools | Actual read, grep, find, ls, write, edit and native PowerShell with system-only PATH |
 | Profiles and sessions | Narrower profile on resumed session; forbidden write request rejected; moved-project session fork |
 | Transport | Actual local OpenAI-compatible SSE, Ollama without auth, Azure-style deployment path/version/API-key, custom Responses API/environment header |

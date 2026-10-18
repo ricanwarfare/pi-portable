@@ -2,6 +2,8 @@
 
 **Start here:** [Build, configure a custom provider, and use the agent](docs/GETTING_STARTED.md). Includes copyable commands, session-only authentication, internal HTTPS/proxy setup, subagents and web access.
 
+**Double-click setup:** the first launch opens a settings window for your provider, model, key and project. Check **Web access** and **Delegation** to remember them for every launch. Inside the agent, **`/portable`**, **`/web`** or **`/delegation`** reopens settings; Save applies the choices by restarting and continuing the saved project session. Remembered model keys use Windows DPAPI encryption. See [in-app settings and key storage](docs/APP_SETTINGS.md).
+
 A single Windows x64 executable for the [Pi coding agent](https://github.com/earendil-works/pi), configured for your internal model service. No administrator access, Node.js, Bun, npm, Git, or model download is required on the target. Windows with .NET Framework 4.8 and permission to execute applications from your chosen storage is required. PowerShell is needed only for the `full` tool profile.
 
 Derived from [ricanwarfare/pi-response](https://github.com/ricanwarfare/pi-response), preserving its checksum-pinned official Pi packaging, safe extraction, bundled ripgrep/fd, Windows build provenance, and optional release signing. The upstream Pi binary is unmodified. Incident response, evidence collection, Ollama Cloud defaults and its original web adapter are removed. Optional web access uses the separately bundled `pi-agent-web-access` package. This is an independent distribution.
@@ -31,7 +33,7 @@ E:\Tools\pi-portable.exe --profile full --project C:\Projects\MyApp
 E:\Tools\pi-portable.exe --continue
 ```
 
-Authenticated services prompt for a hidden **session-only** key when attached to a terminal. Keys are never written by the launcher or passed in command arguments. For redirected/RPC use, supply `PI_PORTABLE_API_KEY` in the calling process environment using your organization's secret injection mechanism. `keyEnv` selects a different environment variable. `--session-key` ignores that variable and prompts again. There is no launcher credential-save option. Avoid putting a real key in a command typed into shell history.
+Command-line launches prompt for a hidden **session-only** key unless you explicitly save one in the settings window. Remembered keys are encrypted separately with Windows DPAPI for the current user; they are never saved as clear-text JSON or passed in command arguments. `PI_PORTABLE_API_KEY` (or the configured `keyEnv`) overrides a saved key. `--session-key` skips both sources and prompts again without changing the saved key. Redirected/RPC launches require an injected or remembered key. Avoid putting real keys in shell history. [Storage and portability details](docs/APP_SETTINGS.md).
 
 ## Optional web search and page reading
 
