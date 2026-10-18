@@ -60,3 +60,6 @@ Desktop.ini
 
 **/runs/
 /portable.json
+
+# Retain all published subagent resources, including source folders named runs.
+!vendor/pi-subagents/upstream/**

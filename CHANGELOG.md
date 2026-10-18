@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0
+
+- Embed pi-subagents 0.79.1, published source/resources, runtime dependencies, licenses and checked hashes.
+- Add opt-in `--subagents` / `--no-subagents`, seven built-in roles, bounded foreground parallel tasks and sequential chains using the embedded Pi SDK.
+- Keep child models, tools, credentials, web scope and state within portable configuration; disable detached Windows runners, workflow scripts, external agents, scheduling and automatic worktrees.
+- Avoid a pinned Windows Bun workflow-worker crash by dispatching structured batches through foreground sessions.
+- Test actual child sessions, role discovery, default/forced-off behavior, profile limits, model/async rejection, parallel overlap, chained results, child reads and web credential separation against local services.
+
 ## 0.2.0
 
 - Bundle the requested pi-agent-web-access 1.1.2 extension with all 19 runtime JavaScript dependencies, original source and license notices, and checked file hashes.

@@ -6,6 +6,8 @@ export default async function portablePolicy(pi) {
   const allowed = process.env.PI_PORTABLE_TOOLS.split(',');
   try {
     const config = JSON.parse(process.env.PI_PORTABLE_NETWORK);
+    const subagents = config.subagents ?? {};
+    if (!subagents || typeof subagents !== 'object' || Array.isArray(subagents) || Object.keys(subagents).some(key => key !== 'enabled') || subagents.enabled !== undefined && typeof subagents.enabled !== 'boolean') throw new Error('Invalid subagents configuration');
     // Pi reports extension initialization errors and continues, so fail closed here.
     const transport = globalThis.fetch.bind(globalThis);
     const modelFetch = createGuard(config, { fetch: transport, report: message => console.error(message) });

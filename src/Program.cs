@@ -209,6 +209,7 @@ internal static class Program
             string configPath = null, project = Environment.CurrentDirectory, projectId = null, profile = null, forkSession = null;
             bool info = false, configure = false, promptKey = false;
             bool? webEnabled = null;
+            bool? subagentsEnabled = null;
             var forwarded = new List<string>();
             // Deliberately narrow upstream surface: wrapper policy cannot be disabled by flag order.
             var values = new[] { "--name", "-n", "--thinking", "--mode", "--system-prompt", "--append-system-prompt", "--tui-mode" };
@@ -227,6 +228,8 @@ internal static class Program
                 if (arg == "--session-key") { promptKey = true; continue; }
                 if (arg == "--web") { webEnabled = true; continue; }
                 if (arg == "--no-web") { webEnabled = false; continue; }
+                if (arg == "--subagents") { subagentsEnabled = true; continue; }
+                if (arg == "--no-subagents") { subagentsEnabled = false; continue; }
                 if (Array.IndexOf(new[] { "--portable-home", "--portable-storage", "--portable-config", "--project", "--project-id", "--profile", "--fork-session" }, arg) >= 0)
                 {
                     if (++i == args.Length) throw new IOException("Missing value for " + arg);
@@ -285,7 +288,7 @@ internal static class Program
                 if (Array.IndexOf(values, forwarded[i]) >= 0) i++;
             }
             var config = ReadObject(configPath);
-            var known = new[] { "kind", "baseUrl", "model", "auth", "keyEnv", "profile", "proxy", "caFile", "contextWindow", "maxTokens", "api", "apiVersion", "headers", "compat", "allowHttp", "web" };
+            var known = new[] { "kind", "baseUrl", "model", "auth", "keyEnv", "profile", "proxy", "caFile", "contextWindow", "maxTokens", "api", "apiVersion", "headers", "compat", "allowHttp", "web", "subagents" };
             foreach (var key in config.Keys) if (Array.IndexOf(known, key) < 0) throw new IOException("Unknown configuration field: " + key);
             var kind = Text(config, "kind", "openai");
             if (Array.IndexOf(new[] { "openai", "ollama", "azure", "custom" }, kind) < 0) throw new IOException("Unknown endpoint kind.");
@@ -333,6 +336,10 @@ internal static class Program
                 var webConfig = webConfigValue as Dictionary<string, object>;
                 if (webConfig != null && webConfig.TryGetValue("enabled", out webIsEnabled) && Object.Equals(webIsEnabled, true)) tools += ",web_search,fetch_content";
             }
+            if (subagentsEnabled.HasValue) config["subagents"] = new { enabled = subagentsEnabled.Value };
+            object subagentsValue;
+            var subagentsOn = subagentsEnabled ?? (config.TryGetValue("subagents", out subagentsValue) && subagentsValue is Dictionary<string, object> && ((Dictionary<string, object>)subagentsValue).ContainsKey("enabled") && Object.Equals(((Dictionary<string, object>)subagentsValue)["enabled"], true));
+            if (subagentsOn) tools += ",subagent,subagents_enable,bg_wait,contact_supervisor,subagent_supervisor";
             CheckPath(home); Directory.CreateDirectory(home);
             var runtime = Prepare(home);
             run = Path.Combine(home, "runs", Guid.NewGuid().ToString("N"));
@@ -357,8 +364,19 @@ internal static class Program
             if (config.TryGetValue("compat", out compat)) provider["compat"] = compat;
             else provider["compat"] = new { supportsStore = false, supportsDeveloperRole = false, supportsReasoningEffort = false, maxTokensField = "max_tokens" };
             WriteJson(Path.Combine(agent, "models.json"), new { providers = new Dictionary<string, object> { { "portable", provider } } });
-            WriteJson(Path.Combine(agent, "settings.json"), new { defaultProvider = "portable", defaultModel = model, defaultThinkingLevel = "off" });
+            WriteJson(Path.Combine(agent, "settings.json"), new { defaultProvider = "portable", defaultModel = model, defaultThinkingLevel = "off", subagents = new { defaultProvider = "portable", defaultModel = model, disableThinking = true, defaultExtensions = new string[0], modelScope = new { allow = new[] { "portable/" + model } } } });
+            if (subagentsOn)
+            {
+                var subagentConfigDir = Path.Combine(agent, "extensions", "subagent"); Directory.CreateDirectory(subagentConfigDir);
+                WriteJson(Path.Combine(subagentConfigDir, "config.json"), new {
+                    asyncByDefault = false, forceTopLevelAsync = false, defaultSubagentContext = "fresh", maxSubagentDepth = 1,
+                    maxSubagentSpawnsPerRun = 8, maxSubagentSpawnsPerSession = 32, toolActivation = "eager", scheduledRuns = new { enabled = false },
+                    artifactDir = "session", artifacts = true,
+                    disabledFeatures = new[] { "agent-management", "watchdog", "panes", "missions", "lane-management", "external-machines", "extension-bindings", "gates", "workflow-scripts" }
+                });
+            }
             var defaults = new List<string> { "--offline", "--no-approve", "--no-extensions", "--no-mcp", "--no-skills", "--no-prompt-templates", "--no-themes", "--no-context-files", "--extension", Path.Combine(runtime, "portable", "policy.ts"), "--tools", tools };
+            if (subagentsOn) defaults.AddRange(new[] { "--extension", Path.Combine(runtime, "portable", "subagents.ts") });
             if (!localOnly) defaults.AddRange(new[] { "--provider", "portable", "--model", model });
             defaults.AddRange(forwarded);
             var commandLine = new List<string>(); foreach (var arg in defaults) commandLine.Add(Quote(arg));
@@ -373,6 +391,12 @@ internal static class Program
             start.EnvironmentVariables["PI_PORTABLE_NETWORK"] = new JavaScriptSerializer().Serialize(config);
             start.EnvironmentVariables["PI_PORTABLE_TOOLS"] = tools;
             start.EnvironmentVariables["PI_PORTABLE_WEB_STATE"] = webState;
+            start.EnvironmentVariables["PI_SUBAGENTS_TEMP_ROOT"] = Path.Combine(home, "subagents", projectId);
+            start.EnvironmentVariables["PI_SUBAGENT_PI_BINARY"] = Path.Combine(runtime, "pi.exe");
+            start.EnvironmentVariables["PI_SUBAGENT_MAX_DEPTH"] = "1";
+            start.EnvironmentVariables["PI_SUBAGENT_MAX_SPAWNS_PER_SESSION"] = "32";
+            start.EnvironmentVariables["PI_SUBAGENT_MAX_SPAWNS_PER_RUN"] = "8";
+            start.EnvironmentVariables.Remove("PI_SUBAGENTS_PI_CODING_AGENT_PACKAGE_ROOT");
             start.EnvironmentVariables["PI_PORTABLE_RUNTIME_KEY"] = auth == "none" ? "no-auth" : keyValue ?? "";
             // Pinned Bun versions differ in their proxy:false support. Remove inherited
             // proxy variables from this child only for deterministic direct mode.

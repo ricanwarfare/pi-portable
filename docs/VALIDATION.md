@@ -2,7 +2,7 @@
 
 Validated on October 18, 2026, using the actual Windows x64 distribution built from this source. The full suite ran with `scripts/test.ps1 -RequireStandardUser`, which reported `administrator token: False`.
 
-Result for distribution 0.2.0: **28 tests passed, zero failures, zero skips**, approximately 78 seconds. The build succeeded using the pinned official Pi 1.3.0 runtime, bundled rg/fd and pi-agent-web-access 1.1.2 with its bundled dependencies; `--version` returned `1.3.0`. The output is unsigned. Release signature tests verify that an unsigned executable, changed bytes, wrong publisher, wrong commit and dirty-source manifests cannot pass the signed release gate.
+Result for distribution 0.3.0: **29 tests passed, zero failures, zero skips**, approximately 195 seconds. The build succeeded using the pinned official Pi 1.3.0 runtime, bundled rg/fd, pi-agent-web-access 1.1.2 and pi-subagents 0.79.1 with their bundled dependencies; `--version` returned `1.3.0`. The output is unsigned. Release signature tests verify that an unsigned executable, changed bytes, wrong publisher, wrong commit and dirty-source manifests cannot pass the signed release gate. The subagent integration is additionally rerun after role-discovery and native PowerShell adaptations; clean-source CI checks the final committed build.
 
 | Area | Verified |
 | --- | --- |
@@ -19,6 +19,7 @@ Result for distribution 0.2.0: **28 tests passed, zero failures, zero skips**, a
 | Offline startup | Version without a reachable model/proxy; actual RPC initialization/EOF with zero sentinel endpoint/proxy requests |
 | Optional web tools | Default/forced-off produce no web requests; actual bundled Exa MCP, Exa direct API, Brave and HTML-to-Markdown extraction under system-only PATH |
 | Web boundaries | Search keys remain separate from model credentials, no keys in persisted test state, portable Exa ledger, redirect/content allowlists, independent Jina opt-in, asynchronous scope separation |
+| Optional subagents | Actual embedded SDK child sessions, role discovery, default/forced-off, same model/profile, rejected detached/model changes, parallel overlap, chain handoff, child read and web search, no key bytes in persisted state |
 
 All model/proxy traffic in the tests uses synthetic loopback services. Tests require no production credentials or public AI access. Certificate generation uses Git's OpenSSL and does not install trust into Windows. The host tool sandbox prevents some loopback/junction/OpenSSL operations, so the native test suite was run outside that tool sandbox under the same non-elevated Windows account. This did not grant administrator rights to the tests or application.
 

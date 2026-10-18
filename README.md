@@ -41,6 +41,14 @@ E:\Tools\pi-portable.exe --web --profile edit --project C:\Projects\MyApp
 
 Web access stays off by default. `--no-web` overrides an enabled config. Exa MCP search works without a search API key; `EXA_API_KEY` or `BRAVE_API_KEY` in the calling process environment selects authenticated services. Search sends queries to those external providers unless you configure compatible internal mirrors. Page fetching uses HTTPS by default; Jina fallback is separately disabled until `web.jina` is explicitly enabled. Search credentials are separate from model credentials, and its usage counter lives under the selected state directory. No npm installation or startup download is needed on the target. See [web configuration, allowlists and disclosure](docs/WEB_ACCESS.md).
 
+## Optional subagents
+
+`pi-subagents` **0.79.1** is also embedded. Launch with `--subagents` to delegate to built-in coding/research roles; combine `--web` for permitted researcher web tools. Children share your configured model and remain within the current coding profile. Single tasks, parallel batches and sequential chains run in the foreground. Detached runners and JavaScript workflows are disabled for this Windows distribution. See [usage and compatibility limits](docs/SUBAGENTS.md).
+
+```powershell
+E:\Tools\pi-portable.exe --subagents --web --profile edit --project C:\Projects\MyApp
+```
+
 ## Endpoint configuration
 
 The complete configuration reference and examples are in [docs/CONFIGURATION.md](docs/CONFIGURATION.md). Copy one of the examples in `config/` into your chosen state directory as `portable.json`.
