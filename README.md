@@ -4,6 +4,8 @@ Release **1.3.0** bundles the official **Pi 1.3.0** executable. Release numberin
 
 **Downloads:** [Latest Windows EXE](https://github.com/ricanwarfare/pi-portable/releases/latest/download/pi-portable.exe) · [SHA256 checksum](https://github.com/ricanwarfare/pi-portable/releases/latest/download/pi-portable.exe.sha256) · [Release notes](https://github.com/ricanwarfare/pi-portable/releases/latest). GitHub access to this private repository is required.
 
+**Updates:** GitHub checks for new stable Pi releases daily and prepares a checksum-verified update branch with a Windows build/test run. It opens a PR when repository policy allows, otherwise provides a link to open one. Review and merge it, then use **Actions → Publish release → Run workflow** on `main`. Replace the EXE while retaining your state folder. See [updating the repository and a portable copy](docs/UPDATING.md).
+
 **Start here:** [Build, configure a custom provider, and use the agent](docs/GETTING_STARTED.md). Includes copyable commands, session-only authentication, internal HTTPS/proxy setup, subagents and web access.
 
 **Double-click setup:** the first launch opens a settings window for your provider, model, key and project. Check **Web access** and **Delegation** to remember them for every launch. Inside the agent, **`/portable`**, **`/web`** or **`/delegation`** reopens settings; Save applies the choices by restarting and continuing the saved project session. Remembered model keys use Windows DPAPI encryption. See [in-app settings and key storage](docs/APP_SETTINGS.md).

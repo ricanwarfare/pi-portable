@@ -1,0 +1,45 @@
+name: Check upstream Pi
+
+on:
+  schedule:
+    - cron: '23 9 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+concurrency:
+  group: upstream-pi-update
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '22'
+      - name: Check automation tests
+        run: node --test tests/upstream-update.test.mjs
+      - name: Verify and prepare latest stable Pi
+        id: update
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/update-upstream.mjs
+      - name: Open update pull request and test it
+        if: steps.update.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          UPDATE_BRANCH: ${{ steps.update.outputs.branch }}
+          UPDATE_VERSION: ${{ steps.update.outputs.version }}
+        run: node scripts/open-upstream-pr.mjs
+      - name: Already current
+        if: steps.update.outputs.changed != 'true'
+        run: echo 'Pi Portable already pins the latest stable upstream Pi. No changes made.' >> "$GITHUB_STEP_SUMMARY"

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Add a daily/manual official Pi update check with downloaded SHA256/size verification, aligned version/pin/documentation changes, and update PRs with explicitly dispatched Windows build/tests.
+- Add a main-only Publish release button that derives the merged version, refuses existing releases/conflicting tags and dispatches the existing tested/signing-aware publication gate. Runtime startup remains offline; portable-copy updates retain the state folder.
+- Test update validation, idempotency, tampering/downgrade rejection, check-only behavior and safe tag/publication retries using synthetic fixtures.
+
 ## 1.3.0
 
 - Publish the first GitHub release of Pi Portable, numbered to match the bundled official Pi 1.3.0 runtime. Earlier 0.x versions were development builds of this distribution; the upstream Pi binary remains unmodified.
