@@ -2,7 +2,7 @@
 
 Validated on October 18, 2026, using the actual Windows x64 distribution built from this source. The full suite ran with `scripts/test.ps1 -RequireStandardUser`, which reported `administrator token: False`.
 
-Result for distribution 0.4.0: **33 tests passed, zero failures, zero skips**, approximately 186 seconds. The build succeeded using the pinned official Pi 1.3.0 runtime, bundled rg/fd, pi-agent-web-access 1.1.2 and pi-subagents 0.79.1 with their bundled dependencies; `--version` returned `1.3.0`. Native form, DPAPI, restart and settings-command tests join the existing runtime regressions. Settings tests are additionally rerun after final setup-recovery and inherited-terminal refinements; clean-source CI checks the final committed build. The output is unsigned. Release signature tests verify that an unsigned executable, changed bytes, wrong publisher, wrong commit and dirty-source manifests cannot pass the signed release gate.
+Release 1.3.0 local validation: **33 tests passed, zero failures, zero skips**, approximately 319 seconds, with a non-administrator token. The distribution version matches the bundled upstream version. The tagged GitHub release independently builds and runs the complete suite before publication. The build uses pinned official Pi 1.3.0, bundled rg/fd, pi-agent-web-access 1.1.2 and pi-subagents 0.79.1 with their bundled dependencies; `--version` returns `1.3.0`. The output is unsigned. Release signature tests verify that an unsigned executable, changed bytes, wrong publisher, wrong commit and dirty-source manifests cannot pass the signed release gate.
 
 | Area | Verified |
 | --- | --- |

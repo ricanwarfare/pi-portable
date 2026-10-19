@@ -1,6 +1,6 @@
 # Double-click setup and in-app preferences
 
-Double-click `pi-portable.exe`. On first use, the **Pi Portable settings** window opens. Existing configurations from before 0.4.0 also receive this setup window once on a double-click launch.
+Double-click `pi-portable.exe`. On first use, the **Pi Portable settings** window opens. Existing configurations created before graphical setup was added also receive this setup window once on a double-click launch.
 
 1. Choose your provider type and enter its API base URL and exact model ID. Choose Chat Completions (`openai-completions`) or Responses (`openai-responses`), as supported by your service. The wrapper appends the API route.
 2. Choose Bearer, API-key or no authentication. Enter your key in the masked field. **Remember API key for this Windows account** is checked in the setup window; clear it if you want to enter a session-only key in the terminal instead.

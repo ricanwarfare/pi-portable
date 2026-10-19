@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.0
+
+- Publish the first GitHub release of Pi Portable, numbered to match the bundled official Pi 1.3.0 runtime. Earlier 0.x versions were development builds of this distribution; the upstream Pi binary remains unmodified.
+- Ship a single Windows x64 executable with bundled ripgrep/fd, pi-agent-web-access 1.1.2 and pi-subagents 0.79.1. No target-side Node.js/npm installation or startup download is required.
+- Include double-click setup and `/portable` settings for the provider, model, project, coding permissions, persistent web/delegation preferences and optional Windows-encrypted remembered model keys.
+- Support explicit internal OpenAI-compatible, Ollama, Azure and custom Chat Completions/Responses endpoints, verified HTTPS with additional PEM CAs, proxy routing and project-partitioned sessions.
+- Preserve session-only CLI credentials by default, exact model-route transport policy, review/edit/full tool profiles and credential separation for optional web tools. Foreground single, parallel and chained delegation is supported; detached runners and arbitrary workflow scripts remain disabled.
+- Run all 33 Windows tests before publication and attach the executable, SHA256 checksum and clean-source build manifest. This release is unsigned; enterprise execution policy still applies.
+
 ## 0.4.0
 
 - Add native Windows first-run settings for double-click launches, remembered provider/model/project, API/auth format, CA/proxy options, coding profile, web access and delegation.
