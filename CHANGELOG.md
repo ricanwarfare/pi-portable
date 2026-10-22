@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.0
+
+- Update the unmodified official Windows x64 Pi runtime from 1.3.0 to 1.4.0, keeping the portable version aligned.
+- Verify the downloaded ZIP against GitHub's SHA256 asset digest and retain the existing tool/extension pins and portable defaults.
+- See [upstream release notes](https://github.com/earendil-works/pi/releases/tag/v1.4.0) for Pi changes. Full Windows build, offline/internal-network, settings, credential, web and delegation tests are required before publication.
+
 ## Unreleased
 
 - Add a daily/manual official Pi update check with downloaded SHA256/size verification, aligned version/pin/documentation changes, and update PRs with explicitly dispatched Windows build/tests.
