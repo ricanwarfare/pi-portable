@@ -8,6 +8,8 @@ import { connect } from 'node:net';
 import { join, resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
+const distributionVersion = JSON.parse(readFileSync(join(root, 'version.json'), 'utf8')).version;
+const pinnedVersion = JSON.parse(readFileSync(join(root, 'upstream-release.json'), 'utf8')).version;
 const scratch = mkdtempSync(join(root, '.build/runtime '));
 mkdirSync(join(scratch, '.git'));
 const exe = join(root, 'dist/pi-portable.exe');
@@ -171,7 +173,9 @@ test('packaged runtime blocks redirects and invalid transport policy before mode
 
 test('offline version startup works when every inherited proxy is unreachable', async () => {
   const result = await launch(join(scratch, 'offline-start'), { baseUrl: 'https://unreachable.internal/v1' }, ['--version'], { HTTP_PROXY: 'http://127.0.0.1:1', HTTPS_PROXY: 'http://127.0.0.1:1', ALL_PROXY: 'http://127.0.0.1:1' });
-  assert.equal(result.status, 0, result.stdout + result.stderr); assert.match(result.stdout, /1\.3\.0/);
+  assert.equal(distributionVersion, pinnedVersion, 'version.json must match the bundled Pi pin');
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.equal(result.stdout.trim(), pinnedVersion, `--version must report the bundled Pi ${pinnedVersion}; the release files and this runtime disagree`);
   let unexpectedRequests = 0;
   const sentinel = createServer((req, res) => { unexpectedRequests++; res.writeHead(500).end(); }); await listen(sentinel);
   try {

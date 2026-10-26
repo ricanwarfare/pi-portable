@@ -57,6 +57,8 @@ export function prepareUpdate(files, candidate) {
   if (compareVersions(candidate.version, distribution.version) <= 0) throw new Error('New upstream version must exceed the distribution version');
   const oldIntro = `Release **${distribution.version}** bundles the official **Pi ${pin.version}** executable.`;
   if (!files['README.md'].includes(oldIntro)) throw new Error('README version marker missing; review manually');
+  const oldNotices = `| Pi coding agent | ${pin.version}, `;
+  if (!files['THIRD_PARTY_NOTICES.md'].includes(oldNotices)) throw new Error('Third-party notices version marker missing; review manually');
   const entry = `## ${candidate.version}\n\n- Update the unmodified official Windows x64 Pi runtime from ${pin.version} to ${candidate.version}, keeping the portable version aligned.\n- Verify the downloaded ZIP against GitHub's SHA256 asset digest and retain the existing tool/extension pins and portable defaults.\n- See [upstream release notes](${candidate.release.url}) for Pi changes. Full Windows build, offline/internal-network, settings, credential, web and delegation tests are required before publication.\n\n`;
   if (!files['CHANGELOG.md'].startsWith('# Changelog\n') && !files['CHANGELOG.md'].startsWith('# Changelog\r\n')) throw new Error('Changelog heading missing');
   if (new RegExp(`^## ${candidate.version.replaceAll('.', '\\.')}\\s*$`, 'm').test(files['CHANGELOG.md'])) throw new Error('Changelog version already exists; review manually');
@@ -64,13 +66,14 @@ export function prepareUpdate(files, candidate) {
     'upstream-release.json': JSON.stringify({ ...pin, version: candidate.version, url: candidate.url, sha256: candidate.sha256, release: candidate.release }, null, 2) + '\n',
     'version.json': JSON.stringify({ ...distribution, version: candidate.version }) + '\n',
     'README.md': files['README.md'].replace(oldIntro, `Release **${candidate.version}** bundles the official **Pi ${candidate.version}** executable.`),
+    'THIRD_PARTY_NOTICES.md': files['THIRD_PARTY_NOTICES.md'].replace(oldNotices, `| Pi coding agent | ${candidate.version}, `),
     'CHANGELOG.md': files['CHANGELOG.md'].replace(/^# Changelog\r?\n\s*/, '# Changelog\n\n' + entry),
   };
 }
 
 export async function runUpdate(root, release, { check = false, fetcher = fetch } = {}) {
   const candidate = selectRelease(release);
-  const names = ['upstream-release.json', 'version.json', 'README.md', 'CHANGELOG.md'];
+  const names = ['upstream-release.json', 'version.json', 'README.md', 'THIRD_PARTY_NOTICES.md', 'CHANGELOG.md'];
   const files = Object.fromEntries(names.map(name => [name, readFileSync(join(root, name), 'utf8')]));
   const changes = prepareUpdate(files, candidate);
   if (!changes) return { changed: false, version: candidate.version };
