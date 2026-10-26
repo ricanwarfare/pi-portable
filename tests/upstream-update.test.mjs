@@ -169,6 +169,9 @@ test('this repository keeps every release file aligned with the bundled Pi pin',
   assert.equal(version, pin.version, 'version.json and upstream-release.json must name the same version');
   assert.match(read('README.md'), new RegExp(`Release \\*\\*${escaped}\\*\\* bundles the official \\*\\*Pi ${escaped}\\*\\* executable\\.`));
   assert.match(read('THIRD_PARTY_NOTICES.md'), new RegExp(`\\| Pi coding agent \\| ${escaped}, `));
-  assert.match(read('CHANGELOG.md'), new RegExp(`^## ${escaped}\\s*$`, 'm'));
-  assert.ok(releaseTag(version, pin.version, read('CHANGELOG.md')) === `v${version}`);
+  const changelog = read('CHANGELOG.md');
+  const sections = changelog.split(/^##\s+/m).filter(part => part.startsWith(`${version}\n`) || part.startsWith(`${version}\r\n`));
+  assert.equal(sections.length, 1, 'changelog must have exactly one section for the pinned version');
+  assert.ok(sections[0].split(/\r?\n/).slice(1).join('\n').trim().length > 0, 'the release section must not be empty');
+  assert.equal(releaseTag(version, pin.version, changelog), `v${version}`);
 });
