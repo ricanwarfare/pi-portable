@@ -4,7 +4,7 @@ Pi Portable is an independent distribution. It embeds unmodified official Pi art
 
 | Software | Pinned version/source | License |
 | --- | --- | --- |
-| Pi coding agent | 1.3.0, [earendil-works/pi](https://github.com/earendil-works/pi) | MIT, retained in NOTICE.txt and the official payload |
+| Pi coding agent | 1.4.0, [earendil-works/pi](https://github.com/earendil-works/pi) | MIT, retained in NOTICE.txt and the official payload |
 | Windows launcher/build/release foundation and icon | [ricanwarfare/pi-response](https://github.com/ricanwarfare/pi-response), commit 845c7dba1d250564797d961cceb21bccb7a62ea1 | MIT, retained in LICENSE |
 | ripgrep | 15.2.0, [BurntSushi/ripgrep](https://github.com/BurntSushi/ripgrep) | MIT or Unlicense, retained in runtime tools/rg |
 | fd | 10.5.0, [sharkdp/fd](https://github.com/sharkdp/fd) | MIT or Apache-2.0, retained in runtime tools/fd |

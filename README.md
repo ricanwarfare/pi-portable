@@ -1,6 +1,6 @@
 # Pi Portable
 
-Release **1.3.0** bundles the official **Pi 1.3.0** executable. Release numbering now follows the bundled upstream version; earlier 0.x numbers were development builds of this distribution. The build manifest records the exact portable source commit and upstream checksum. This repository packages Pi with a Windows launcher and extensions rather than modifying the upstream Pi source.
+Release **1.4.0** bundles the official **Pi 1.4.0** executable. Release numbering now follows the bundled upstream version; earlier 0.x numbers were development builds of this distribution. The build manifest records the exact portable source commit and upstream checksum. This repository packages Pi with a Windows launcher and extensions rather than modifying the upstream Pi source.
 
 **Downloads:** [Latest Windows EXE](https://github.com/ricanwarfare/pi-portable/releases/latest/download/pi-portable.exe) · [SHA256 checksum](https://github.com/ricanwarfare/pi-portable/releases/latest/download/pi-portable.exe.sha256) · [Release notes](https://github.com/ricanwarfare/pi-portable/releases/latest). GitHub access to this private repository is required.
 

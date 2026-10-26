@@ -19,6 +19,7 @@ const files = () => ({
   'version.json': '{"version":"1.3.0"}',
   'README.md': 'Release **1.3.0** bundles the official **Pi 1.3.0** executable.\nSettings remain intact.\n',
   'CHANGELOG.md': '# Changelog\r\n\r\n## 1.3.0\r\n\r\n- Previous release.\r\n',
+  'THIRD_PARTY_NOTICES.md': '# Third-party software\n\n| Software | Pinned version/source | License |\n| --- | --- | --- |\n| Pi coding agent | 1.3.0, [earendil-works/pi](https://github.com/earendil-works/pi) | MIT |\n| ripgrep | 15.2.0, [BurntSushi/ripgrep](https://github.com/BurntSushi/ripgrep) | MIT or Unlicense |\n',
 });
 
 test('stable release selection rejects prereleases, malformed versions, missing/wrong assets and digest spoofing', () => {
@@ -47,6 +48,8 @@ test('versions compare numerically; upgrades align pins, docs and changelog whil
   assert.equal(JSON.parse(changes['version.json']).version, '1.4.0');
   assert.match(changes['README.md'], /Release \*\*1\.4\.0\*\* bundles the official \*\*Pi 1\.4\.0\*\*/);
   assert.match(changes['README.md'], /Settings remain intact/);
+  assert.match(changes['THIRD_PARTY_NOTICES.md'], /\| Pi coding agent \| 1\.4\.0, /);
+  assert.match(changes['THIRD_PARTY_NOTICES.md'], /\| ripgrep \| 15\.2\.0, /);
   assert.match(changes['CHANGELOG.md'], /^# Changelog\n\n## 1\.4\.0\n/);
   assert.ok(changes['CHANGELOG.md'].includes('## 1.3.0\r\n\r\n- Previous release.'));
   assert.match(changes['CHANGELOG.md'], /https:\/\/github.com\/earendil-works\/pi\/releases\/tag\/v1.4.0/);
@@ -60,6 +63,8 @@ test('no-op is idempotent and retagged releases, downgrades and documentation dr
   assert.throws(() => prepareUpdate(updated, { ...candidate, version: '1.3.9' }), /downgrade/);
   const drift = files(); drift['README.md'] = 'No marker';
   assert.throws(() => prepareUpdate(drift, candidate), /marker/);
+  const noticesDrift = files(); noticesDrift['THIRD_PARTY_NOTICES.md'] = '# Third-party software\n\n| Software | Pinned version/source | License |\n| --- | --- | --- |\n';
+  assert.throws(() => prepareUpdate(noticesDrift, candidate), /marker/);
   const ahead = files(); ahead['version.json'] = '{"version":"1.5.0"}';
   assert.throws(() => prepareUpdate(ahead, candidate), /exceed/);
   const duplicate = files(); duplicate['CHANGELOG.md'] += '\n## 1.4.0\n';
@@ -153,4 +158,20 @@ test('publication retries same-source failed builds but refuses different/annota
   ]) assert.throws(() => publish({ ...options, ...override, gh: () => assert.fail('Must not write anything') }));
   assert.throws(() => releaseTag('1.4.0', '1.3.0', options.changelog), /must match/);
   assert.throws(() => releaseTag('1.4.0', '1.4.0', '# Changelog'), /changelog/);
+});
+
+test('this repository keeps every release file aligned with the bundled Pi pin', () => {
+  const root = fileURLToPath(new URL('../', import.meta.url));
+  const read = name => readFileSync(join(root, name), 'utf8');
+  const pin = JSON.parse(read('upstream-release.json'));
+  const version = JSON.parse(read('version.json')).version;
+  const escaped = version.replaceAll('.', '\\.');
+  assert.equal(version, pin.version, 'version.json and upstream-release.json must name the same version');
+  assert.match(read('README.md'), new RegExp(`Release \\*\\*${escaped}\\*\\* bundles the official \\*\\*Pi ${escaped}\\*\\* executable\\.`));
+  assert.match(read('THIRD_PARTY_NOTICES.md'), new RegExp(`\\| Pi coding agent \\| ${escaped}, `));
+  const changelog = read('CHANGELOG.md');
+  const sections = changelog.split(/^##\s+/m).filter(part => part.startsWith(`${version}\n`) || part.startsWith(`${version}\r\n`));
+  assert.equal(sections.length, 1, 'changelog must have exactly one section for the pinned version');
+  assert.ok(sections[0].split(/\r?\n/).slice(1).join('\n').trim().length > 0, 'the release section must not be empty');
+  assert.equal(releaseTag(version, pin.version, changelog), `v${version}`);
 });
